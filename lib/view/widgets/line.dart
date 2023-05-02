@@ -8,6 +8,6 @@ class Line extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(data.rawText);
+    return Text('${data.lineNumber}: ${data.rawText}');
   }
 }
