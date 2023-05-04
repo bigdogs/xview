@@ -8,6 +8,8 @@ class Line extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text('${data.lineNumber}: ${data.rawText}');
+    return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+        child: Text.rich(data.span));
   }
 }

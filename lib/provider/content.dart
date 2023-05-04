@@ -81,12 +81,7 @@ class ContentProvider extends Notifier<Content> {
 
     for (int i = 0; i < lines.length; i += 1) {
       final line = lines[i];
-      final lineState = LineState(
-          lineNumber: i,
-          rawText: line,
-          //TODO: make filter actual work
-          match: filter != "" && line.contains(filter));
-
+      final lineState = LineState.create(i, line, filter);
       content.add(lineState);
       if (lineState.match) {
         filterContent.add(lineState);
@@ -97,12 +92,32 @@ class ContentProvider extends Notifier<Content> {
         content: content, filterContent: filterContent, filterWord: filter));
   }
 
-  void setFilter(String filter) {}
+  void setFilter(String filter) async {
+    log.info("set filter: $filter");
+    if (filter == state.filterWord) {
+      return;
+    }
+    final content = state.content;
+    List<LineState> newContent = [];
+    List<LineState> newFilterContent = [];
+    for (final line in content) {
+      final r = line.applyFilter(filter);
+      newContent.add(r);
+      if (r.match) {
+        newFilterContent.add(r);
+      }
+    }
+    state = state.copy(
+        content: newContent,
+        filterContent: newFilterContent,
+        filterWord: filter);
+  }
 }
 
 final contentProvider = NotifierProvider<ContentProvider, Content>(() {
   final p = ContentProvider();
   // TODO: remove fake files
-  p.loadFile(r"C:\Users\xyanj\Downloads\vmware.log");
+  // p.loadFile(r"C:\Users\xyanj\Downloads\vmware.log");
+  p.loadFile("/tmp/a.log");
   return p;
 });
