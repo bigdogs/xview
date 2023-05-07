@@ -92,7 +92,12 @@ flutter:
   # see https://flutter.dev/custom-fonts/#from-packages
   fonts:
     # TODO: logifier font?
-    - family: 'Segoe UI'
+    - family: 'CascadiaCode'
       fonts:
-        - asset: asset/fonts/Segoe UI Bold.ttf
-        - asset: asset/fonts/Segoe UI.ttf
+        - asset: asset/fonts/CascadiaCode-Bold.ttf
+        - asset: asset/fonts/CascadiaCode-Light.ttf
+        - asset: asset/fonts/CascadiaCode-ExtraLight.ttf
+        - asset: asset/fonts/CascadiaCode.ttf
+        - asset: asset/fonts/CascadiaCode-SemiBold.ttf
+        - asset: asset/fonts/CascadiaCode-SemiLight.ttf
+        - asset: asset/fonts/CascadiaCode-Regular.ttf

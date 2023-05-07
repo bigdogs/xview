@@ -8,8 +8,9 @@ class Line extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Colors.black87;
     return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-        child: Text.rich(data.span));
+        padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
+        child: Text.rich(data.span, style: TextStyle(fontWeight: FontWeight.w400, color: Color.fromARGB(188, 0, 0, 0)),));
   }
 }

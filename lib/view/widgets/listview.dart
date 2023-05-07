@@ -137,7 +137,7 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
         constraints.scrollOffset + constraints.cacheOrigin;
     final double remainingExtent = constraints.remainingCacheExtent;
     final double targetEndScrollOffset = scrollOffset + remainingExtent;
-    print("### scrollOffset: $scrollOffset ~ $targetEndScrollOffset");
+    // print("### scrollOffset: $scrollOffset ~ $targetEndScrollOffset");
 
     // clear the widiget that is far away from our current scroll range,
     // then we know `firstChild` is not far away layout range if it is exists
