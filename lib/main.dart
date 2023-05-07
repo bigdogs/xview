@@ -7,6 +7,7 @@ void main() {
   beforeRunApp();
   runApp(ProviderScope(
       child: MaterialApp(
+    theme: ThemeData(fontFamily: 'Segoe UI'),
     home: Scaffold(body: Home()),
   )));
 }

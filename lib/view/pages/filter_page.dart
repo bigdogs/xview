@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:xview/provider/content.dart';
 import 'package:xview/view/widgets/line.dart';
+import 'package:xview/view/widgets/listview.dart';
 
 class FilterPage extends ConsumerWidget {
   @override
@@ -12,13 +13,10 @@ class FilterPage extends ConsumerWidget {
         FilterLine(),
         Expanded(
             child: SelectionArea(
-                child: ListView.separated(
+                child: ListViewExt.builder(
           itemCount: content.filterLength(),
           itemBuilder: (c, index) {
             return Line(data: content.filterLineAtIndex(index));
-          },
-          separatorBuilder: (c, index) {
-            return const Divider(height: 1);
           },
         )))
       ],

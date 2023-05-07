@@ -117,7 +117,6 @@ class ContentProvider extends Notifier<Content> {
 final contentProvider = NotifierProvider<ContentProvider, Content>(() {
   final p = ContentProvider();
   // TODO: remove fake files
-  // p.loadFile(r"C:\Users\xyanj\Downloads\vmware.log");
-  p.loadFile("/tmp/a.log");
+  p.loadFile(r"C:\Users\xyanj\Downloads\vmware.log");
   return p;
 });

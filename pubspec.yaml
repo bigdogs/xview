@@ -90,3 +90,9 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+  fonts:
+    # TODO: logifier font?
+    - family: 'Segoe UI'
+      fonts:
+        - asset: asset/fonts/Segoe UI Bold.ttf
+        - asset: asset/fonts/Segoe UI.ttf
