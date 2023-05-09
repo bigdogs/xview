@@ -43,6 +43,8 @@ class LineState {
   late final TextSpan span;
   late final bool match;
 
+  int get lineno => _line.lineNumber;
+
   static LineState create(int lineNumber, String text, String filter) {
     final line = _Line(lineNumber: lineNumber, text: text);
     return line.applyFilter(filter);

@@ -92,12 +92,13 @@ flutter:
   # see https://flutter.dev/custom-fonts/#from-packages
   fonts:
     # TODO: logifier font?
-    - family: 'CascadiaCode'
+    - family: 'SF-Mono'
       fonts:
-        - asset: asset/fonts/CascadiaCode-Bold.ttf
-        - asset: asset/fonts/CascadiaCode-Light.ttf
-        - asset: asset/fonts/CascadiaCode-ExtraLight.ttf
-        - asset: asset/fonts/CascadiaCode.ttf
-        - asset: asset/fonts/CascadiaCode-SemiBold.ttf
-        - asset: asset/fonts/CascadiaCode-SemiLight.ttf
-        - asset: asset/fonts/CascadiaCode-Regular.ttf
+        - asset: asset/fonts/SF-Mono-Bold.ttf
+        - asset: asset/fonts/SF-Mono-Heavy.ttf
+        - asset: asset/fonts/SF-Mono-Light.ttf
+        - asset: asset/fonts/SF-Mono-Medium.ttf
+        - asset: asset/fonts/SF-Mono-Regular.ttf
+        - asset: asset/fonts/SF-Mono-Semibold.ttf
+        - asset: asset/fonts/SF-Mono.ttf
+

@@ -8,19 +8,21 @@ class FilterPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final content = ref.watch(contentProvider);
-    return Column(
-      children: [
-        FilterLine(),
-        Expanded(
-            child: SelectionArea(
-                child: ListViewExt.builder(
-          itemCount: content.filterLength(),
-          itemBuilder: (c, index) {
-            return Line(data: content.filterLineAtIndex(index));
-          },
-        )))
-      ],
-    );
+    return ColoredBox(
+        color: const Color.fromARGB(100, 230, 224, 223),
+        child: Column(
+          children: [
+            FilterLine(),
+            Expanded(
+                child: SelectionArea(
+                    child: ListViewExt.builder(
+              itemCount: content.filterLength(),
+              itemBuilder: (c, index) {
+                return Line(data: content.filterLineAtIndex(index));
+              },
+            )))
+          ],
+        ));
   }
 }
 
@@ -37,7 +39,10 @@ class _FilterLineState extends ConsumerState<FilterLine> {
 
   @override
   void initState() {
-    focusNode = FocusNode();
+    focusNode = FocusNode()
+      ..addListener(() {
+        setState(() {});
+      });
     super.initState();
   }
 
@@ -60,13 +65,17 @@ class _FilterLineState extends ConsumerState<FilterLine> {
                     ref.read(contentProvider.notifier).setFilter(_filter);
                     focusNode.requestFocus();
                   },
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                       filled: true,
+                      hoverColor: Colors.transparent,
                       contentPadding: EdgeInsets.zero,
-                      prefixIcon: Icon(Icons.search, size: 16),
-                      border: OutlineInputBorder(
+                      prefixIcon: const Icon(Icons.search, size: 16),
+                      fillColor: (focusNode.hasFocus || _filter.isNotEmpty)
+                          ? Colors.white
+                          : const Color.fromARGB(255, 215, 210, 209),
+                      border: const OutlineInputBorder(
                           borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.all(Radius.circular(4)))),
+                          borderRadius: BorderRadius.all(Radius.circular(8)))),
                 ))
               ],
             )));
