@@ -2,8 +2,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class Setting {
   // unused, the filter view is always open
-  final bool isFilterViewOpen = true;
-  final double fontSize = 12;
+  final bool isFilterViewOpen;
+  final int currentInex;
+
+  Setting({this.isFilterViewOpen = true, this.currentInex = -1});
+
+  Setting copy({bool? isFilterViewOpen, int? currentInex}) {
+    return Setting(
+      isFilterViewOpen: isFilterViewOpen ?? this.isFilterViewOpen,
+      currentInex: currentInex ?? this.currentInex,
+    );
+  }
 }
 
 class SettingProvider extends Notifier<Setting> {
@@ -11,6 +20,10 @@ class SettingProvider extends Notifier<Setting> {
   Setting build() {
     state = Setting();
     return state;
+  }
+
+  void setCurrentIndex(int index) {
+    state = state.copy(currentInex: index);
   }
 }
 
