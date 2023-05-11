@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:xview/provider/content.dart';
+import 'package:xview/provider/filedata.dart';
 import 'package:xview/view/widgets/line.dart';
 import 'package:xview/view/widgets/listview.dart';
 
 class FilterPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final content = ref.watch(contentProvider);
+    final content = ref.watch(fileDataProvider);
     return ColoredBox(
         color: const Color.fromARGB(100, 230, 224, 223),
         child: Column(
@@ -62,7 +62,7 @@ class _FilterLineState extends ConsumerState<FilterLine> {
                     _filter = c;
                   },
                   onEditingComplete: () {
-                    ref.read(contentProvider.notifier).setFilter(_filter);
+                    ref.read(fileDataProvider.notifier).setFilter(_filter);
                     focusNode.requestFocus();
                   },
                   decoration: InputDecoration(

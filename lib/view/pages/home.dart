@@ -1,17 +1,20 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:xview/provider/filedata.dart';
 import 'package:xview/view/pages/filter_page.dart';
 import 'package:xview/view/pages/main_page.dart';
+import 'package:xview/view/widgets/drag_file.dart';
 
-class Home extends StatefulWidget {
+class Home extends ConsumerStatefulWidget {
+  const Home({super.key});
+
   @override
-  State<StatefulWidget> createState() {
+  ConsumerState<ConsumerStatefulWidget> createState() {
     return _HomeState();
   }
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends ConsumerState<Home> {
   double percent = 0.2;
 
   @override
@@ -21,7 +24,9 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constrinat) {
+    return DragFile(onOpenFiles: (files) {
+      ref.read(fileDataProvider.notifier).openFiles(files);
+    }, child: LayoutBuilder(builder: (context, constrinat) {
       return Column(
         children: [
           Expanded(child: MainPage()),
@@ -36,7 +41,7 @@ class _HomeState extends State<Home> {
           SizedBox(height: percent * constrinat.maxHeight, child: FilterPage()),
         ],
       );
-    });
+    }));
   }
 
   void _changeViewFilterHeight(DragUpdateDetails details, double totalHeight) {

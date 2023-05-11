@@ -32,6 +32,8 @@ dependencies:
     sdk: flutter
   logging: ^1.1.1
   flutter_riverpod: ^2.3.6
+  desktop_drop: ^0.4.1
+  shared_preferences: ^2.1.1
 
 
   # The following adds the Cupertino Icons font to your application.

@@ -86,7 +86,7 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     while (child != null) {
       final SliverMultiBoxAdaptorParentData p =
           child.parentData as SliverMultiBoxAdaptorParentData;
-      if (p.layoutOffset! < min) {
+      if (p.layoutOffset != null && p.layoutOffset! < min) {
         leading += 1;
         child = childAfter(child);
       } else {
@@ -99,7 +99,7 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     while (child != null) {
       final SliverMultiBoxAdaptorParentData p =
           child.parentData as SliverMultiBoxAdaptorParentData;
-      if (p.layoutOffset! > max) {
+      if (p.layoutOffset != null && p.layoutOffset! > max) {
         trailing += 1;
         child = childBefore(child);
       } else {

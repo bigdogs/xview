@@ -20,7 +20,8 @@ class _LineState extends ConsumerState<Line> {
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(
+          SelectionContainer.disabled(
+              child: Container(
             width: 48,
             alignment: Alignment.topRight,
             margin: const EdgeInsets.only(right: 16),
@@ -28,7 +29,7 @@ class _LineState extends ConsumerState<Line> {
               '${widget.data.lineno}',
               style: const TextStyle(color: Colors.grey),
             ),
-          ),
+          )),
           Expanded(
               child: Stack(children: [
             Positioned.fill(child: Builder(builder: (_) {
@@ -40,14 +41,13 @@ class _LineState extends ConsumerState<Line> {
               }
               return Container(color: color);
             })),
-            SelectableText.rich(
-              widget.data.span,
-              onTap: () {
-                ref
-                    .read(settingProvider.notifier)
-                    .setCurrentIndex(widget.data.lineno);
-              },
-            )
+            GestureDetector(
+                onTap: () {
+                  ref
+                      .read(settingProvider.notifier)
+                      .setCurrentIndex(widget.data.lineno);
+                },
+                child: Text.rich(widget.data.span))
           ]))
         ]));
   }
