@@ -93,7 +93,6 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
   fonts:
-    # TODO: logifier font?
     - family: 'SF-Mono'
       fonts:
         - asset: asset/fonts/SF-Mono-Bold.ttf
@@ -103,4 +102,6 @@ flutter:
         - asset: asset/fonts/SF-Mono-Regular.ttf
         - asset: asset/fonts/SF-Mono-Semibold.ttf
         - asset: asset/fonts/SF-Mono.ttf
-
+    - family: 'xview'
+      fonts:
+        - asset: asset/fonts/xview.ttf

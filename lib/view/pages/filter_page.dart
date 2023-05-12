@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:xview/provider/filedata.dart';
+import 'package:xview/utils/icons.dart';
 import 'package:xview/view/widgets/line.dart';
 import 'package:xview/view/widgets/listview.dart';
 
@@ -54,6 +55,9 @@ class _FilterLineState extends ConsumerState<FilterLine> {
             height: 28,
             child: Row(
               children: [
+                _SettingIcon(data: XIcons.case_sensitive),
+                _SettingIcon(data: XIcons.regex),
+                _SettingIcon(data: XIcons.whole_word),
                 Expanded(
                     child: TextField(
                   maxLines: 1,
@@ -79,5 +83,47 @@ class _FilterLineState extends ConsumerState<FilterLine> {
                 ))
               ],
             )));
+  }
+}
+
+class _SettingIcon extends StatefulWidget {
+  final IconData data;
+  final bool firstSelected;
+
+  const _SettingIcon({required this.data, this.firstSelected = false});
+
+  @override
+  State<StatefulWidget> createState() => _SettingIconState();
+}
+
+class _SettingIconState extends State<_SettingIcon> {
+  late bool selected;
+
+  _SettingIconState();
+
+  @override
+  void initState() {
+    selected = widget.firstSelected;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+        onTap: () {
+          setState(() {
+            selected = !selected;
+          });
+        },
+        child: Center(
+            child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Icon(
+                  widget.data,
+                  size: 18,
+                  color: selected
+                      ? const Color.fromARGB(255, 27, 118, 224)
+                      : const Color.fromARGB(255, 103, 97, 96),
+                ))));
   }
 }
