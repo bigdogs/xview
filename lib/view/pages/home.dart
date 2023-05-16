@@ -29,7 +29,7 @@ class _HomeState extends ConsumerState<Home> {
     }, child: LayoutBuilder(builder: (context, constrinat) {
       return Column(
         children: [
-          Expanded(child: MainPage()),
+          const Expanded(child: MainPage()),
           MouseRegion(
             cursor: SystemMouseCursors.resizeUpDown,
             child: GestureDetector(

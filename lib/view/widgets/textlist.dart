@@ -2,11 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-// default `ListView` will hang app on quick scroll
+// default `ListView` will hang app on quick scroll, so we define our
+// custom `TextList`
 //
 // https://github.com/flutter/flutter/issues/75399
-class ListViewExt extends BoxScrollView {
-  ListViewExt.builder({
+class TextList extends BoxScrollView {
+  final int Function(int) itemTextCount;
+
+  TextList.builder({
     super.key,
     super.scrollDirection,
     super.reverse,
@@ -16,6 +19,7 @@ class ListViewExt extends BoxScrollView {
     super.shrinkWrap,
     super.padding,
     required NullableIndexedWidgetBuilder itemBuilder,
+    required this.itemTextCount,
     ChildIndexGetter? findChildIndexCallback,
     int? itemCount,
     bool addAutomaticKeepAlives = true,
@@ -27,8 +31,9 @@ class ListViewExt extends BoxScrollView {
     super.keyboardDismissBehavior,
     super.restorationId,
     super.clipBehavior,
-  })  : childrenDelegate = SliverChildBuilderDelegate(
+  })  : childrenDelegate = _TextListBuilderDelegate(
           itemBuilder,
+          itemTextCount: itemTextCount,
           findChildIndexCallback: findChildIndexCallback,
           childCount: itemCount,
           addAutomaticKeepAlives: addAutomaticKeepAlives,
@@ -45,6 +50,18 @@ class ListViewExt extends BoxScrollView {
   Widget buildChildLayout(BuildContext context) {
     return _CustomSliverList(delegate: childrenDelegate);
   }
+}
+
+class _TextListBuilderDelegate extends SliverChildBuilderDelegate {
+  final int Function(int) itemTextCount;
+
+  const _TextListBuilderDelegate(super.builder,
+      {required this.itemTextCount,
+      super.findChildIndexCallback,
+      super.childCount,
+      super.addAutomaticKeepAlives,
+      super.addRepaintBoundaries,
+      super.addSemanticIndexes});
 }
 
 /// [SliverList]
@@ -65,7 +82,34 @@ class _CustomSliverList extends SliverMultiBoxAdaptorWidget {
 }
 
 class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
+  // we assume that font size is not change
+  double? estimatedCharWidth;
+  double? estimatedCharHeight;
+
   _CustomRenderSliverList({required super.childManager});
+
+  void estimateSingleCharSize() {
+    if (estimatedCharWidth != null && estimatedCharHeight != null) {
+      return;
+    }
+
+    Size testTextSize(String text) {
+      final testRenderObject = RenderParagraph(TextSpan(text: text),
+          textDirection: TextDirection.ltr);
+      return testRenderObject.computeDryLayout(const BoxConstraints());
+    }
+
+    final size = testTextSize("abcd中");
+
+    estimatedCharWidth = size.width / 5;
+    estimatedCharHeight = size.height;
+  }
+
+  void layout2() {
+    estimateSingleCharSize();
+    childManager.didStartLayout();
+    childManager.setDidUnderflow(false);
+  }
 
   double? collectFarAwayGarbage(double scrollStart, double scrollEnd) {
     if (firstChild == null) {
@@ -129,6 +173,8 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
   /// [RenderSliverList.performLayout]
   @override
   void performLayout() {
+    layout2();
+
     childManager.didStartLayout();
     childManager.setDidUnderflow(false);
 
@@ -137,7 +183,9 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
         constraints.scrollOffset + constraints.cacheOrigin;
     final double remainingExtent = constraints.remainingCacheExtent;
     final double targetEndScrollOffset = scrollOffset + remainingExtent;
-    // print("### scrollOffset: $scrollOffset ~ $targetEndScrollOffset");
+    print('# $constraints');
+
+    print("### scrollOffset: $scrollOffset ~ $targetEndScrollOffset");
 
     // clear the widiget that is far away from our current scroll range,
     // then we know `firstChild` is not far away layout range if it is exists

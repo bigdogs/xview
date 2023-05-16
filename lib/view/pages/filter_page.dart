@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:xview/provider/filedata.dart';
+import 'package:xview/provider/position.dart';
 import 'package:xview/utils/icons.dart';
 import 'package:xview/view/widgets/line.dart';
-import 'package:xview/view/widgets/listview.dart';
+import 'package:xview/view/widgets/textlist.dart';
 
 class FilterPage extends ConsumerWidget {
+  const FilterPage({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final content = ref.watch(fileDataProvider);
@@ -13,13 +16,21 @@ class FilterPage extends ConsumerWidget {
         color: const Color.fromARGB(100, 230, 224, 223),
         child: Column(
           children: [
-            FilterLine(),
+            const FilterLine(),
             Expanded(
                 child: SelectionArea(
-                    child: ListViewExt.builder(
+                    child: TextList.builder(
+              itemTextCount: (index) =>
+                  content.filterLineAtIndex(index).text.length,
               itemCount: content.filterLength(),
               itemBuilder: (c, index) {
-                return Line(data: content.filterLineAtIndex(index));
+                final data = content.filterLineAtIndex(index);
+                return Line(
+                  data: data,
+                  onTap: () {
+                    ref.read(positionProvider.notifier).jumpTo(data.lineno);
+                  },
+                );
               },
             )))
           ],
@@ -28,6 +39,8 @@ class FilterPage extends ConsumerWidget {
 }
 
 class FilterLine extends ConsumerStatefulWidget {
+  const FilterLine({super.key});
+
   @override
   ConsumerState<ConsumerStatefulWidget> createState() {
     return _FilterLineState();
@@ -55,9 +68,9 @@ class _FilterLineState extends ConsumerState<FilterLine> {
             height: 28,
             child: Row(
               children: [
-                _SettingIcon(data: XIcons.case_sensitive),
-                _SettingIcon(data: XIcons.regex),
-                _SettingIcon(data: XIcons.whole_word),
+                const _SettingIcon(data: XIcons.case_sensitive),
+                const _SettingIcon(data: XIcons.regex),
+                const _SettingIcon(data: XIcons.whole_word),
                 Expanded(
                     child: TextField(
                   maxLines: 1,

@@ -44,6 +44,7 @@ class LineState {
   late final bool match;
 
   int get lineno => _line.lineNumber;
+  String get text => _line.text;
 
   static LineState create(int lineNumber, String text, String filter) {
     final line = _Line(lineNumber: lineNumber, text: text);

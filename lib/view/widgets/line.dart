@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:xview/provider/setting.dart';
+import 'package:xview/provider/position.dart';
 import 'package:xview/view/states/line_state.dart';
 
 class Line extends ConsumerStatefulWidget {
   final LineState data;
+  // the parent widget isn't responding to the click event, and I'm clueless on how to fix it.
+  final void Function()? onTap;
 
-  const Line({super.key, required this.data});
+  const Line({super.key, required this.data, this.onTap});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() {
@@ -33,8 +35,8 @@ class _LineState extends ConsumerState<Line> {
           Expanded(
               child: Stack(children: [
             Positioned.fill(child: Builder(builder: (_) {
-              final currentIndex = ref
-                  .watch(settingProvider.select((value) => value.currentInex));
+              final currentIndex = ref.watch(
+                  positionProvider.select((value) => value.clickedIndex));
               Color? color;
               if (currentIndex == widget.data.lineno) {
                 color = const Color.fromARGB(80, 172, 175, 179);
@@ -42,12 +44,19 @@ class _LineState extends ConsumerState<Line> {
               return Container(color: color);
             })),
             GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: () {
+                  if (widget.onTap != null) {
+                    widget.onTap!();
+                  }
+
                   ref
-                      .read(settingProvider.notifier)
-                      .setCurrentIndex(widget.data.lineno);
+                      .read(positionProvider.notifier)
+                      .clickIndex(widget.data.lineno);
                 },
-                child: Text.rich(widget.data.span))
+                child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Text.rich(widget.data.span)))
           ]))
         ]));
   }
