@@ -5,14 +5,16 @@ class Position {
   // it changes frequently, I'm not sure if adding it to `filedata` would negatively impact performace
   final int clickedIndex;
   final int jumpTargetIndex;
+  final int jumpCount;
 
-  Position({this.clickedIndex = -1, this.jumpTargetIndex = -1});
+  Position(
+      {this.clickedIndex = -1, this.jumpTargetIndex = -1, this.jumpCount = 0});
 
-  Position copy({int? clickedIndex, int? jumpTargetIndex}) {
+  Position copy({int? clickedIndex, int? jumpTargetIndex, int? jumpCount}) {
     return Position(
-      clickedIndex: clickedIndex ?? this.clickedIndex,
-      jumpTargetIndex: jumpTargetIndex ?? this.jumpTargetIndex,
-    );
+        clickedIndex: clickedIndex ?? this.clickedIndex,
+        jumpTargetIndex: jumpTargetIndex ?? this.jumpTargetIndex,
+        jumpCount: jumpCount ?? this.jumpCount);
   }
 }
 
@@ -28,7 +30,7 @@ class PositionProvider extends Notifier<Position> {
   }
 
   void jumpTo(int index) {
-    state = state.copy(jumpTargetIndex: index);
+    state = state.copy(jumpTargetIndex: index, jumpCount: state.jumpCount + 1);
   }
 }
 

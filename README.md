@@ -8,6 +8,7 @@
 * ~~open file history~~
 * tab
 * regex/aA/word
+* hover on regex/aA/word
 * multi tabs
 * single line mode
 * text selection on double/trip click (blocked: https://github.com/flutter/flutter/issues/104552)

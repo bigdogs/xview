@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -105,12 +107,6 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     estimatedCharHeight = size.height;
   }
 
-  void layout2() {
-    estimateSingleCharSize();
-    childManager.didStartLayout();
-    childManager.setDidUnderflow(false);
-  }
-
   double? collectFarAwayGarbage(double scrollStart, double scrollEnd) {
     if (firstChild == null) {
       return null;
@@ -168,24 +164,114 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     return addInitialChild(index: guessIndex, layoutOffset: offset);
   }
 
+  SliverConstraints? preConstraints;
+
+  bool isIndexVisiable(int index) {
+    if (firstChild == null || lastChild == null) {
+      return false;
+    }
+    // pre check if index is in range.
+    SliverMultiBoxAdaptorParentData parentData =
+        firstChild!.parentData! as SliverMultiBoxAdaptorParentData;
+    if (parentData.index == null || parentData.index! > index) {
+      return false;
+    }
+    parentData = lastChild!.parentData! as SliverMultiBoxAdaptorParentData;
+    if (parentData.index == null || parentData.index! < index) {
+      return false;
+    }
+
+    RenderBox? child = firstChild;
+    while (child != null) {
+      parentData = child.parentData! as SliverMultiBoxAdaptorParentData;
+      if (parentData.index == index) {
+        return parentData.layoutOffset == null
+            ? false
+            : isOffsetVisiableOnLastLayout(parentData.layoutOffset!);
+      } else {
+        child = childAfter(child);
+      }
+    }
+    return false;
+  }
+
+  double estimateOffsetOfIndex(int index) {
+    return 0;
+  }
+
+  SliverGeometry? scrollToIndexCorrection() {
+    final scrollOffset = constraints.scrollOffset;
+    if (scrollOffset > 0.2 || scrollOffset < precisionErrorTolerance) {
+      return null;
+    }
+    // 0.10086XXX
+    final s = scrollOffset.toString();
+    if (!s.startsWith("0.10086")) {
+      return null;
+    }
+    final index = int.parse(s.substring(7));
+    print('you want to go to index $index');
+
+    // if target index is currently visiable, then to scroll to previous offset
+    if (preConstraints != null && isIndexVisiable(index)) {
+      print("..visible");
+      return SliverGeometry(
+          scrollOffsetCorrection:
+              preConstraints!.scrollOffset - constraints.scrollOffset);
+    }
+
+    print('..not visiable.. scroll to 0 for now');
+    return SliverGeometry(
+        scrollOffsetCorrection:
+            estimateOffsetOfIndex(index) - constraints.scrollOffset);
+  }
+
+  bool isOffsetVisiableOnLastLayout(double offset) {
+    if (preConstraints == null) {
+      return false;
+    }
+    // 1. > -cacheOrigin
+    // 2. > offset + cache Origin
+    final minOffset = max(-preConstraints!.cacheOrigin,
+        preConstraints!.scrollOffset + preConstraints!.cacheOrigin);
+    // ensure 50 piexls, then we can see something
+    final maxOffset = minOffset + preConstraints!.remainingPaintExtent - 50;
+
+    return offset > minOffset && offset < maxOffset;
+  }
+
+  @override
+  void performLayout() {
+    childManager.didStartLayout();
+    childManager.setDidUnderflow(false);
+    estimateSingleCharSize();
+
+    print(
+        'offset-> ${constraints.scrollOffset}, cacheOrigin: ${constraints.cacheOrigin}, prev -> ${preConstraints?.scrollOffset}');
+
+    // check scroll to index request `0.10086xxx`
+    final correct = scrollToIndexCorrection();
+    if (correct != null) {
+      geometry = correct;
+      return;
+    }
+    preConstraints = constraints;
+
+    // record previous scroll offset
+
+    _layout();
+  }
+
   /// referenced from
   ///
   /// [RenderSliverList.performLayout]
-  @override
-  void performLayout() {
-    layout2();
 
-    childManager.didStartLayout();
-    childManager.setDidUnderflow(false);
-
+  void _layout() {
     final SliverConstraints constraints = this.constraints;
     final double scrollOffset =
         constraints.scrollOffset + constraints.cacheOrigin;
     final double remainingExtent = constraints.remainingCacheExtent;
     final double targetEndScrollOffset = scrollOffset + remainingExtent;
-    print('# $constraints');
-
-    print("### scrollOffset: $scrollOffset ~ $targetEndScrollOffset");
 
     // clear the widiget that is far away from our current scroll range,
     // then we know `firstChild` is not far away layout range if it is exists

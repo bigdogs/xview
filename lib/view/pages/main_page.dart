@@ -25,8 +25,7 @@ class _MainPageState extends ConsumerState<MainPage> {
   @override
   Widget build(BuildContext context) {
     ref.listen(positionProvider, (previous, next) {
-      if (next.jumpTargetIndex != -1 &&
-          next.jumpTargetIndex != previous?.jumpTargetIndex) {
+      if (next.jumpTargetIndex != -1 && next.jumpCount != previous?.jumpCount) {
         _fakeJumpToIndex(next.jumpTargetIndex);
       }
     });
@@ -49,7 +48,7 @@ class _MainPageState extends ConsumerState<MainPage> {
   }
 
   _fakeJumpToIndex(int index) {
-    final fakeOffset = double.parse('13.10086$index');
+    final fakeOffset = double.parse('0.10086$index');
     _scrollController.jumpTo(fakeOffset);
   }
 }
