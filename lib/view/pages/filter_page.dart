@@ -68,9 +68,14 @@ class _FilterLineState extends ConsumerState<FilterLine> {
             height: 28,
             child: Row(
               children: [
-                const _SettingIcon(data: XIcons.case_sensitive),
-                const _SettingIcon(data: XIcons.regex),
-                const _SettingIcon(data: XIcons.whole_word),
+                const _SettingIcon(
+                  data: XIcons.case_sensitive,
+                  toolTips: "Match Case",
+                ),
+                const _SettingIcon(
+                    data: XIcons.regex, toolTips: "Use Regular Expression"),
+                const _SettingIcon(
+                    data: XIcons.whole_word, toolTips: "Match Whole Word"),
                 Expanded(
                     child: TextField(
                   maxLines: 1,
@@ -102,15 +107,23 @@ class _FilterLineState extends ConsumerState<FilterLine> {
 class _SettingIcon extends StatefulWidget {
   final IconData data;
   final bool firstSelected;
+  final String toolTips;
 
-  const _SettingIcon({required this.data, this.firstSelected = false});
+  const _SettingIcon(
+      {required this.data, this.firstSelected = false, required this.toolTips});
 
   @override
   State<StatefulWidget> createState() => _SettingIconState();
 }
 
 class _SettingIconState extends State<_SettingIcon> {
+  final BoxDecoration _shadow = BoxDecoration(
+    borderRadius: BorderRadius.circular(2),
+    color: Colors.white,
+  );
+
   late bool selected;
+  BoxDecoration? _hoverDecoration;
 
   _SettingIconState();
 
@@ -128,15 +141,30 @@ class _SettingIconState extends State<_SettingIcon> {
             selected = !selected;
           });
         },
-        child: Center(
-            child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(
-                  widget.data,
-                  size: 18,
-                  color: selected
-                      ? const Color.fromARGB(255, 27, 118, 224)
-                      : const Color.fromARGB(255, 103, 97, 96),
-                ))));
+        child: Container(
+            padding: const EdgeInsets.all(2),
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            decoration: _hoverDecoration,
+            child: MouseRegion(
+                onEnter: (e) {
+                  setState(() {
+                    _hoverDecoration = _shadow;
+                  });
+                },
+                onExit: (e) {
+                  setState(() {
+                    _hoverDecoration = null;
+                  });
+                },
+                child: Tooltip(
+                    waitDuration: const Duration(milliseconds: 950),
+                    message: widget.toolTips,
+                    child: Icon(
+                      widget.data,
+                      size: 18,
+                      color: selected
+                          ? const Color.fromARGB(255, 27, 118, 224)
+                          : const Color.fromARGB(255, 103, 97, 96),
+                    )))));
   }
 }
