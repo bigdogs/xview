@@ -19,3 +19,4 @@
 - correct layout algorightm / huge line
 - ctrl + F
 - search history
+- match result show in input view (xcode style)

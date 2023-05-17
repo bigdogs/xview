@@ -408,7 +408,8 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     // 1. > -cacheOrigin
     // 2. > offset + cache Origin
     final minOffset = max(-preConstraints!.cacheOrigin,
-        preConstraints!.scrollOffset + preConstraints!.cacheOrigin);
+            preConstraints!.scrollOffset + preConstraints!.cacheOrigin) +
+        25;
     // ensure 50 piexls, then we can see something
     final maxOffset = minOffset + preConstraints!.remainingPaintExtent - 50;
 

@@ -119,7 +119,7 @@ class _SettingIcon extends StatefulWidget {
 class _SettingIconState extends State<_SettingIcon> {
   final BoxDecoration _shadow = BoxDecoration(
     borderRadius: BorderRadius.circular(2),
-    color: Colors.white,
+    color: const Color.fromARGB(180, 216, 211, 210),
   );
 
   late bool selected;

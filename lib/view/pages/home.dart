@@ -4,6 +4,7 @@ import 'package:xview/provider/filedata.dart';
 import 'package:xview/view/pages/filter_page.dart';
 import 'package:xview/view/pages/main_page.dart';
 import 'package:xview/view/widgets/drag_file.dart';
+import 'package:xview/view/widgets/file_tab.dart';
 
 class Home extends ConsumerStatefulWidget {
   const Home({super.key});
@@ -29,6 +30,18 @@ class _HomeState extends ConsumerState<Home> {
     }, child: LayoutBuilder(builder: (context, constrinat) {
       return Column(
         children: [
+          Builder(builder: (c) {
+            final path = ref.watch(fileDataProvider).path;
+            return SingleChildScrollView(
+                child: Row(
+              children: [FileTab(path: path)],
+            ));
+          }),
+          const Divider(
+            height: 0,
+            indent: 0,
+            thickness: 1,
+          ),
           const Expanded(child: MainPage()),
           MouseRegion(
             cursor: SystemMouseCursors.resizeUpDown,
