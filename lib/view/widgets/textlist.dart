@@ -3,11 +3,13 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:xview/utils/log.dart';
 
-// default `ListView` will hang app on quick scroll, so we define our
-// custom `TextList`
-//
+// If we were to use the default `ListView`, the app would 'hang' during rapid
+// scrolling, see:
 // https://github.com/flutter/flutter/issues/75399
+//
+// To avoid this issue, we have defined our own custom `TextList`
 class TextList extends BoxScrollView {
   final int Function(int) itemTextCount;
 
@@ -107,87 +109,215 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     estimatedCharHeight = size.height;
   }
 
-  double? collectFarAwayGarbage(double scrollStart, double scrollEnd) {
-    if (firstChild == null) {
-      return null;
-    }
-    // for our use case, each item size should not be vary too much
-    firstChild!.layout(constraints.asBoxConstraints(), parentUsesSize: true);
-    if (childCount != 1) {
-      lastChild!.layout(constraints.asBoxConstraints(), parentUsesSize: true);
+  // a helper method to get parent data as ... to make code cleaner
+  SliverMultiBoxAdaptorParentData _pd(RenderBox child) {
+    return child.parentData as SliverMultiBoxAdaptorParentData;
+  }
+
+  _TextListBuilderDelegate _delegate() {
+    return (((childManager as SliverMultiBoxAdaptorElement).widget
+            as SliverMultiBoxAdaptorWidget)
+        .delegate as _TextListBuilderDelegate);
+  }
+
+  double _estimateHeightAtIndex(int index) {
+    final maxWidth = constraints.asBoxConstraints().maxWidth;
+    // tricky
+
+    if (maxWidth.isInfinite) {
+      return estimatedCharHeight!;
     }
 
-    final height = (firstChild!.size.height + lastChild!.size.height) / 2;
-    final min = scrollStart - (height * 61);
-    final max = scrollEnd + (height * 61);
+    // it seems like there's room for optimazition, but I'm not entirely certain
+    // if it's necessary
+    int countPerLine = (maxWidth / estimatedCharWidth!).round();
+    int textCount = _delegate().itemTextCount(index);
+    int lineCount = (textCount / countPerLine).round() + 1;
+
+    return lineCount * estimatedCharHeight!;
+  }
+
+  double _estimateChildHeight(RenderBox child) {
+    if (child.hasSize) {
+      return child.size.height;
+    }
+    final pd = _pd(child);
+    if (pd.index == null) {
+      return estimatedCharHeight!;
+    }
+    return _estimateHeightAtIndex(pd.index!);
+  }
+
+  double _estimateOffsetAtIndex(int index) {
+    if (index == 0) {
+      return 0;
+    }
+
+    int? first;
+    int? last;
+    if (firstChild != null) {
+      first = _pd(firstChild!).index;
+      last = _pd(lastChild!).index;
+    }
+    if (first != null && last != null && index >= first && index <= last) {
+      var child = firstChild;
+      while (child != null) {
+        final pd = _pd(child);
+        if (pd.index != null && pd.index == index) {
+          return pd.layoutOffset!;
+        }
+        child = childAfter(child);
+      }
+    }
+
+    int baseIndex = 0;
+    double baseOffset = 0;
+    if (first != null && index < first) {
+      baseIndex = first;
+      baseOffset = _pd(firstChild!).layoutOffset!;
+    } else if (last != null && index > last) {
+      baseIndex = last;
+      baseOffset = _pd(lastChild!).layoutOffset!;
+    }
+
+    if ((baseIndex - index).abs() > 2000) {
+      return baseOffset + (index - baseIndex) * estimatedCharHeight!;
+    }
+
+    int step = index > baseIndex ? 1 : -1;
+    while (baseIndex != index) {
+      baseIndex = baseIndex + step;
+      baseOffset += step * _estimateHeightAtIndex(baseIndex);
+    }
+    return baseOffset;
+  }
+
+  int _estimateIndexAtOffset(double offset) {
+    if (offset == 0.0) {
+      return 0;
+    }
+
+    double? first;
+    double? last;
+    if (firstChild != null) {
+      first = _pd(firstChild!).layoutOffset;
+      last = _pd(lastChild!).layoutOffset;
+    }
+    if (first != null && last != null && offset >= first && offset <= last) {
+      var child = firstChild;
+      while (child != null) {
+        final pd = _pd(child);
+        if (offset >= pd.layoutOffset!) {
+          return pd.index!;
+        }
+      }
+    }
+
+    int baseIndex = 0;
+    double baseOffset = 0;
+    if (first != null && offset < first) {
+      baseOffset = first;
+      baseIndex = _pd(firstChild!).index!;
+    } else if (last != null && offset > last) {
+      baseOffset = last;
+      baseIndex = _pd(lastChild!).index!;
+    }
+
+    if ((offset - baseOffset).abs() > (2000 * estimatedCharHeight!)) {
+      return baseIndex + ((offset - baseOffset) / estimatedCharHeight!).round();
+    }
+
+    int step = offset > baseOffset ? 1 : -1;
+    while (((offset - baseOffset) * step) > 0) {
+      baseOffset += step * (_estimateHeightAtIndex(baseIndex));
+      baseIndex += step;
+    }
+
+    return baseIndex - 1;
+  }
+
+  int? _collectFarAwayGarbage2(double scrollStart, double scrollEnd) {
+    bool isFarAwayForward(RenderBox child) {
+      final pd = _pd(child);
+      if (pd.layoutOffset == null) {
+        // why widget has no layout offset ?
+        return true;
+      }
+
+      return (pd.layoutOffset! + _estimateChildHeight(child)) <
+          (scrollStart - 250);
+    }
+
+    bool isFarAwayBackward(RenderBox child) {
+      final pd = _pd(child);
+      if (pd.layoutOffset == null) {
+        // why widget has no layout offset ?
+        return true;
+      }
+
+      return pd.layoutOffset! > (scrollEnd + 250);
+    }
+
+    if (firstChild == null) {
+      return _estimateIndexAtOffset(scrollStart);
+    }
 
     int leading = 0;
+    int trailing = 0;
     var child = firstChild;
-    while (child != null) {
-      final SliverMultiBoxAdaptorParentData p =
-          child.parentData as SliverMultiBoxAdaptorParentData;
-      if (p.layoutOffset != null && p.layoutOffset! < min) {
-        leading += 1;
-        child = childAfter(child);
-      } else {
-        break;
-      }
+    while (child != null && isFarAwayForward(child)) {
+      leading += 1;
+      child = childAfter(child);
     }
 
-    int trailing = 0;
-    child = lastChild;
-    while (child != null) {
-      final SliverMultiBoxAdaptorParentData p =
-          child.parentData as SliverMultiBoxAdaptorParentData;
-      if (p.layoutOffset != null && p.layoutOffset! > max) {
+    // to avoid deleting a node more than once, we're removing it from just one side
+    if (leading == 0) {
+      child = lastChild;
+      while (child != null && isFarAwayBackward(child)) {
         trailing += 1;
         child = childBefore(child);
-      } else {
-        break;
       }
     }
-    // print('### preCollectGarbage: $leading ~ $trailing');
+    textlistLog.info(
+        'collect garbage. child count: $childCount, $leading ~ $trailing');
+
+    int? index;
+    if (leading + trailing == childCount) {
+      index = _estimateIndexAtOffset(scrollStart);
+      textlistLog.info("layout firstChild at index: $index");
+    }
     collectGarbage(leading, trailing);
-    return height;
+    return index;
   }
 
   /// return false if can't create the first child
-  bool ensureFirstChild(double offset, double? itemHeight) {
-    if (firstChild != null) {
-      return true;
+  bool ensureFirstChild(double offset, int? prefreIndex) {
+    if (firstChild == null) {
+      return addInitialChild(index: prefreIndex!, layoutOffset: offset);
     }
-    // if we didn't known it's height, just guess one..
-    //
-    // how to support scroll to index?
-    itemHeight = itemHeight ?? 36;
-    int guessIndex = (offset / itemHeight).round();
-    return addInitialChild(index: guessIndex, layoutOffset: offset);
+
+    return true;
   }
 
   SliverConstraints? preConstraints;
-
-  bool isIndexVisiable(int index) {
-    if (firstChild == null || lastChild == null) {
+  bool isIndexVisible(int index) {
+    if (firstChild == null) {
       return false;
     }
-    // pre check if index is in range.
-    SliverMultiBoxAdaptorParentData parentData =
-        firstChild!.parentData! as SliverMultiBoxAdaptorParentData;
-    if (parentData.index == null || parentData.index! > index) {
-      return false;
-    }
-    parentData = lastChild!.parentData! as SliverMultiBoxAdaptorParentData;
-    if (parentData.index == null || parentData.index! < index) {
+    final firstPd = _pd(firstChild!);
+    final lastPd = _pd(lastChild!);
+    if ((firstPd.index == null || index < firstPd.index!) ||
+        (lastPd.index == null || index > lastPd.index!)) {
       return false;
     }
 
     RenderBox? child = firstChild;
     while (child != null) {
-      parentData = child.parentData! as SliverMultiBoxAdaptorParentData;
-      if (parentData.index == index) {
-        return parentData.layoutOffset == null
+      final pd = _pd(child);
+      if (pd.index == index) {
+        return pd.layoutOffset == null
             ? false
-            : isOffsetVisiableOnLastLayout(parentData.layoutOffset!);
+            : isOffsetVisiableOnLastLayout(pd.layoutOffset!);
       } else {
         child = childAfter(child);
       }
@@ -195,7 +325,37 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     return false;
   }
 
-  double estimateOffsetOfIndex(int index) {
+  /// make `index` at center position if possible
+  ///
+  /// return the scroll offset with magic number `<offset>.10087<index>`
+  /// to make quick
+  double _layoutTargetAtCenter(int targetIndex) {
+    double offset = _estimateOffsetAtIndex(targetIndex);
+    collectGarbage(childCount, 0);
+    addInitialChild(index: targetIndex, layoutOffset: offset);
+
+    double extent = constraints.remainingPaintExtent / 2;
+    while (extent > 0) {
+      final child = insertAndLayoutLeadingChild(constraints.asBoxConstraints(),
+          parentUsesSize: true);
+      if (child == null) {
+        return 0;
+      }
+
+      offset -= child.size.height;
+      extent -= child.size.height;
+
+      if (offset < 0) {
+        return 0;
+      }
+
+      final pd = _pd(child);
+      pd.layoutOffset = offset;
+
+      if (extent <= 0) {
+        return offset;
+      }
+    }
     return 0;
   }
 
@@ -204,26 +364,41 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     if (scrollOffset > 0.2 || scrollOffset < precisionErrorTolerance) {
       return null;
     }
-    // 0.10086XXX
+    // magic scroll offset :  0.1987<index>6
     final s = scrollOffset.toString();
-    if (!s.startsWith("0.10086")) {
+    if (!s.startsWith("0.1987") || !s.endsWith('6')) {
       return null;
     }
-    final index = int.parse(s.substring(7));
-    print('you want to go to index $index');
 
-    // if target index is currently visiable, then to scroll to previous offset
-    if (preConstraints != null && isIndexVisiable(index)) {
-      print("..visible");
+    final index = int.parse(s.substring(7, s.length - 1));
+
+    // if we're asked to scroll to a specific index, usually it's triggered by a scroll event...
+    // (though there may be some exceptional cases which we're ignoring for now)
+    //
+    // (note that if we actually encounter exceptional cases, we might want to go to index 0 instead of
+    // throwing exceptions)
+    assert(preConstraints != null);
+    assert(firstChild != null);
+    assert(lastChild != null);
+
+    textlistLog.info('receive request to go to index: $index');
+
+    if (isIndexVisible(index)) {
+      // if the target index is already visible, we may want the list to appear unscrolled.
+      // in this case, we can instruct the viewport to correct the offset to the previous
+      // scroll offset
+      textlistLog.info('index $index is visiable, keep previous scroll offset');
       return SliverGeometry(
           scrollOffsetCorrection:
               preConstraints!.scrollOffset - constraints.scrollOffset);
     }
 
-    print('..not visiable.. scroll to 0 for now');
+    final targetOffset = _layoutTargetAtCenter(index);
+    textlistLog
+        .info('layout $index at center with target offset: $targetOffset');
+
     return SliverGeometry(
-        scrollOffsetCorrection:
-            estimateOffsetOfIndex(index) - constraints.scrollOffset);
+        scrollOffsetCorrection: targetOffset - constraints.scrollOffset);
   }
 
   bool isOffsetVisiableOnLastLayout(double offset) {
@@ -246,10 +421,9 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     childManager.setDidUnderflow(false);
     estimateSingleCharSize();
 
-    print(
+    textlistLog.info(
         'offset-> ${constraints.scrollOffset}, cacheOrigin: ${constraints.cacheOrigin}, prev -> ${preConstraints?.scrollOffset}');
 
-    // check scroll to index request `0.10086xxx`
     final correct = scrollToIndexCorrection();
     if (correct != null) {
       geometry = correct;
@@ -257,15 +431,12 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     }
     preConstraints = constraints;
 
-    // record previous scroll offset
-
     _layout();
   }
 
   /// referenced from
   ///
   /// [RenderSliverList.performLayout]
-
   void _layout() {
     final SliverConstraints constraints = this.constraints;
     final double scrollOffset =
@@ -275,17 +446,18 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
 
     // clear the widiget that is far away from our current scroll range,
     // then we know `firstChild` is not far away layout range if it is exists
-    final itemHeight =
-        collectFarAwayGarbage(scrollOffset, targetEndScrollOffset);
+    // By removing any widget that is outside of our current scroll range, we can confirm
+    // that `firstChild` is within the layout range or close to it (assuming it exists)
+    int? preferIndex =
+        _collectFarAwayGarbage2(scrollOffset, targetEndScrollOffset);
 
     // create first child (if not exists) at target scroll offset
-    if (!ensureFirstChild(scrollOffset, itemHeight)) {
+    if (!ensureFirstChild(scrollOffset, preferIndex)) {
       geometry = SliverGeometry.zero;
       childManager.didFinishLayout();
       return;
     }
 
-    // The following are extactly same with ListView :)
     final BoxConstraints childConstraints = constraints.asBoxConstraints();
     RenderBox? leadingChildWithLayout, trailingChildWithLayout;
     RenderBox? earliestUsefulChild = firstChild;
@@ -337,6 +509,8 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     }
 
     if (scrollOffset < precisionErrorTolerance) {
+      // we have now reached the zero position,
+      // it is crucial that the child index 0 laied out at offset 0.0
       while (indexOf(firstChild!) > 0) {
         final double earliestScrollOffset = childScrollOffset(firstChild!)!;
         earliestUsefulChild =
@@ -348,10 +522,17 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
             firstChild!.parentData! as SliverMultiBoxAdaptorParentData;
         childParentData.layoutOffset = 0.0;
         if (firstChildScrollOffset < -precisionErrorTolerance) {
-          geometry = SliverGeometry(
-            scrollOffsetCorrection: -firstChildScrollOffset,
-          );
-          return;
+          // interrupted state: while the scroll offset has been reached to 0.0, the
+          // index has not yet reached to 0
+          //
+          // geometry = SliverGeometry(
+          //   scrollOffsetCorrection: -firstChildScrollOffset,
+          // );
+          // return;
+          collectGarbage(childCount, 0);
+          addInitialChild();
+          earliestUsefulChild = firstChild!;
+          break;
         }
       }
     }
@@ -455,16 +636,16 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     if (reachedEnd) {
       estimatedMaxScrollOffset = endScrollOffset;
     } else {
-      estimatedMaxScrollOffset = childManager.estimateMaxScrollOffset(
-        constraints,
-        firstIndex: indexOf(firstChild!),
-        lastIndex: indexOf(lastChild!),
-        leadingScrollOffset: childScrollOffset(firstChild!),
-        trailingScrollOffset: endScrollOffset,
-      );
-      assert(estimatedMaxScrollOffset >=
-          endScrollOffset - childScrollOffset(firstChild!)!);
+      final count = _delegate().childCount!;
+      final extent = estimatedCharHeight! * count;
+      if (endScrollOffset < extent * 0.8) {
+        estimatedMaxScrollOffset = extent;
+      } else {
+        estimatedMaxScrollOffset =
+            max(extent, (endScrollOffset / indexOf(lastChild!)) * count);
+      }
     }
+
     final double paintExtent = calculatePaintOffset(
       constraints,
       from: childScrollOffset(firstChild!)!,

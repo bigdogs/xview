@@ -48,7 +48,8 @@ class _MainPageState extends ConsumerState<MainPage> {
   }
 
   _fakeJumpToIndex(int index) {
-    final fakeOffset = double.parse('0.10086$index');
+    final fakeOffset =
+        double.parse('0.1987${index.toString().padLeft(7, '0')}6');
     _scrollController.jumpTo(fakeOffset);
   }
 }
