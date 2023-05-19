@@ -15,6 +15,6 @@ void main() {
           bodyMedium: TextStyle(fontSize: fontSize, height: 1.4),
           titleMedium: TextStyle(fontSize: fontSize)),
     ),
-    home: Scaffold(body: Home()),
+    home: const Scaffold(body: Home()),
   )));
 }
