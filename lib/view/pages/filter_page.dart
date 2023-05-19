@@ -92,6 +92,7 @@ class _FilterLineState extends ConsumerState<FilterLine> {
                       hoverColor: Colors.transparent,
                       contentPadding: EdgeInsets.zero,
                       prefixIcon: const Icon(Icons.search, size: 16),
+                      suffix: _MatchCount(),
                       fillColor: (focusNode.hasFocus || _filter.isNotEmpty)
                           ? Colors.white
                           : const Color.fromARGB(255, 215, 210, 209),
@@ -101,6 +102,35 @@ class _FilterLineState extends ConsumerState<FilterLine> {
                 ))
               ],
             )));
+  }
+}
+
+class _MatchCount extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() {
+    return _MatchCountState();
+  }
+}
+
+class _MatchCountState extends ConsumerState<_MatchCount> {
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '0 matches',
+          style: TextStyle(fontSize: 11),
+        ),
+        Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4),
+            child: Icon(
+              XIcons.close_circle,
+              color: Color.fromARGB(255, 124, 124, 124),
+              size: 20,
+            ))
+      ],
+    );
   }
 }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
+import 'package:xview/utils/icons.dart';
 
 class FileTab extends StatefulWidget {
   final String path;
@@ -28,13 +29,13 @@ class _FileTabState extends State<FileTab> {
           const Padding(
               padding: EdgeInsets.symmetric(horizontal: 4),
               child: Icon(
-                Icons.close,
+                XIcons.close,
                 size: 16,
               )),
           const Padding(
               padding: EdgeInsets.symmetric(horizontal: 4),
               child: Icon(
-                Icons.library_books,
+                XIcons.file,
                 size: 14,
                 color: Color.fromARGB(255, 95, 114, 127),
               )),

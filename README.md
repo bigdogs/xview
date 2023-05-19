@@ -4,19 +4,16 @@
 
 # TODO
 
-- icon/name
-- open file
-- ~~open file history~~
-- tab
-- regex/aA/word
-- hover on regex/aA/word
-- multi tabs
-- single line mode
-- text selection on double/trip click (blocked: https://github.com/flutter/flutter/issues/104552)
-- 100M+ optimazition
+- app icon & name
+- search bar
+- make tab icon looks better
 - code refactor
-- scroll to index
-- correct layout algorightm / huge line
-- ctrl + F
-- search history
-- match result show in input view (xcode style)
+  - multiple file support
+  - a better scrolling controller that can center on a specific index and position specific element at particular offset
+  - save file state. maybe need a notifier/listener
+  - bigger file support (~100M). stream loading
+  - empty file page
+
+# Known issue
+
+- hover will not work if the windows is not active or in focus
