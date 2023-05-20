@@ -51,7 +51,7 @@ class _HomeState extends ConsumerState<Home> {
                     _changeViewFilterHeight(details, constrinat.maxHeight),
                 child: const Divider(height: 4)),
           ),
-          SizedBox(height: percent * constrinat.maxHeight, child: FilterPage()),
+          SizedBox(height: percent * constrinat.maxHeight, child: const FilterPage()),
         ],
       );
     }));

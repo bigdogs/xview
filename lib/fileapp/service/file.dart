@@ -3,7 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-Stream<List<String>> openFile(String path) async* {
+Stream<List<String>> readFileAsStream(String path) async* {
   const kMaxLine = 1000;
   final stream = File(path).openRead();
   final lines = stream.transform(utf8.decoder).transform(const LineSplitter());

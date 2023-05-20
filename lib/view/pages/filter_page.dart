@@ -68,13 +68,13 @@ class _FilterLineState extends ConsumerState<FilterLine> {
             height: 28,
             child: Row(
               children: [
-                const _SettingIcon(
+                _SettingIcon(
                   data: XIcons.case_sensitive,
                   toolTips: "Match Case",
                 ),
-                const _SettingIcon(
+                _SettingIcon(
                     data: XIcons.regex, toolTips: "Use Regular Expression"),
-                const _SettingIcon(
+                _SettingIcon(
                     data: XIcons.whole_word, toolTips: "Match Whole Word"),
                 Expanded(
                     child: TextField(
@@ -140,7 +140,7 @@ class _SettingIcon extends StatefulWidget {
   final String toolTips;
 
   const _SettingIcon(
-      {required this.data, this.firstSelected = false, required this.toolTips});
+      {required this.data, required this.toolTips, this.firstSelected = false});
 
   @override
   State<StatefulWidget> createState() => _SettingIconState();
