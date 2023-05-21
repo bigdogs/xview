@@ -35,24 +35,23 @@ class _FileState extends ConsumerState<FileApp> with TickerProviderStateMixin {
       return const NoFile();
     }
 
-    print('----rebuilt-----');
-
     // whenever we create a new tabview, we must also create a new
     // controller
     //
-    // set animation duration to zero to disable animation
     TabController controller = TabController(
+        // animationDuration: Duration.zero,
         length: files.length,
         vsync: this,
-        animationDuration: Duration.zero,
         // The documentation states that we should not use `ref.read` in the build method
         // because it will not trigger a rebuild when changes occur. however, in our specific use case,
         // we only need to read the value once, so it should be acceptable
         initialIndex: ref.read(fileManager).activeIndex);
 
     ref.listen(fileManager.select((value) => value.activeIndex), (prev, next) {
-      // Upon closing the last file, a notification will be sent indicating that the `next` value is -1
-      if (next != -1) {
+      // 1) Upon closing the last file, a notification will be sent indicating that the `next` value is -1
+      // 2) when adding a new file, the `next` value can be larger than the total number of files because the rebuild
+      // has not yet occurred
+      if (next >= 0 && next < files.length) {
         controller.index = next;
       }
     });

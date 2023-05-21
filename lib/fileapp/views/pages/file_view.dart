@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:xview/fileapp/providers/setting.dart';
+import 'package:xview/fileapp/providers/file_setting.dart';
 import 'package:xview/fileapp/views/pages/filter_bar.dart';
 import 'package:xview/fileapp/views/widgets/dragable_divider.dart';
 
@@ -28,7 +28,7 @@ class _FileViewState extends ConsumerState<FileView> {
         id: widget.fileId,
         child: LayoutBuilder(
           builder: (context, constrinat) {
-            final percent = ref.watch(settingProvider(FileView.id(context))
+            final percent = ref.watch(fileSettingProvider(FileView.id(context))
                 .select((value) => value.percentOfFilterView));
 
             return Column(
@@ -50,10 +50,10 @@ class _FileViewState extends ConsumerState<FileView> {
 
   _onDrag(BuildContext context, DragUpdateDetails details, double height) {
     ref
-        .read(settingProvider(FileView.id(context)).notifier)
-        .updateFilterPercent((old) {
-      double p = (old * height - details.delta.dy) / height;
-      return p.clamp(0.1, 0.8);
+        .read(fileSettingProvider(FileView.id(context)).notifier)
+        .updateSetting((old) {
+      double p = (old.percentOfFilterView * height - details.delta.dy) / height;
+      return old.copy(percentOfFilterView: p.clamp(0.1, 0.8));
     });
   }
 }

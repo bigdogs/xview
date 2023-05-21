@@ -57,7 +57,6 @@ class _TabState extends ConsumerState<_Tab> {
     return GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          print('tap index: ${widget.index}');
           ref.read(fileManager.notifier).setActiveIndex(widget.index);
         },
         child: Container(

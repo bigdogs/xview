@@ -37,8 +37,9 @@ class FileManager {
   // note that caller must ensure that `path` does not already exists in the list
   FileManager _addFile(String path, Stream<List<String>> stream) {
     final m = FileMeta(path: path, stream: stream);
+    final files = [...this.files, m];
     return FileManager(
-        files: [...files, m], activeIndex: files.length - 1, error: error);
+        files: files, activeIndex: files.length - 1, error: error);
   }
 
   FileManager _deleteFile(String path) {
