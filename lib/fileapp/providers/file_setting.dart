@@ -68,20 +68,22 @@ class FileSettingNotifier extends StateNotifier<FileSetting> {
     FileViewBox.delete(fileId);
   }
 
-  _onFileLoaded() async {
+  _loadLocalFileSetting() async {
     final setting = await FileViewBox.get(fileId);
     if (setting != null) {
       state = FileSetting.fromMap(setting);
     } else {
       await FileViewBox.put(fileId, state.toMap());
     }
+    print('--- LocalFileSetting is loaded');
   }
 }
 
-final fileSettingProvider = StateNotifierProvider.autoDispose
-    .family<FileSettingNotifier, FileSetting, String>((ref, fileId) {
+final fileSettingProvider =
+    StateNotifierProvider.family<FileSettingNotifier, FileSetting, String>(
+        (ref, fileId) {
   final notifier = FileSettingNotifier(const FileSetting(), fileId: fileId);
-  notifier._onFileLoaded();
+  notifier._loadLocalFileSetting();
 
   ref.read(fileManager).containsFile(fileId);
   ref.listen(fileManager, (_, next) {

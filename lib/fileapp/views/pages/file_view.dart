@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:xview/fileapp/providers/file_setting.dart';
+import 'package:xview/fileapp/views/pages/file_filter_view.dart';
+import 'package:xview/fileapp/views/pages/file_main_view.dart';
 import 'package:xview/fileapp/views/pages/filter_bar.dart';
 import 'package:xview/fileapp/views/widgets/dragable_divider.dart';
+import 'package:xview/utils/consts.dart';
 
 class FileView extends ConsumerStatefulWidget {
   final String fileId;
@@ -33,15 +36,16 @@ class _FileViewState extends ConsumerState<FileView> {
 
             return Column(
               children: [
-                Text(widget.fileId),
-                Expanded(child: _MainView()),
-                DragableDivider(onDrag: (details) {
-                  _onDrag(context, details, constrinat.maxHeight);
-                }),
+                const Expanded(child: MainView()),
+                DragableDivider(
+                    color: CustomColor.filterBackground,
+                    onDrag: (details) {
+                      _onDrag(context, details, constrinat.maxHeight);
+                    }),
                 const FilterBar(),
                 SizedBox(
                     height: percent * constrinat.maxHeight,
-                    child: _FilterView()),
+                    child: const FilterView()),
               ],
             );
           },
@@ -55,20 +59,6 @@ class _FileViewState extends ConsumerState<FileView> {
       double p = (old.percentOfFilterView * height - details.delta.dy) / height;
       return old.copy(percentOfFilterView: p.clamp(0.1, 0.8));
     });
-  }
-}
-
-class _MainView extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}
-
-class _FilterView extends StatelessWidget {
-  @override
-  Widget build(Object context) {
-    return Container();
   }
 }
 

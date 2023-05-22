@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:xview/provider/position.dart';
-import 'package:xview/view/states/line_state.dart';
+import 'package:xview/fileapp/models/line_match.dart';
+import 'package:xview/fileapp/providers/position.dart';
 
 class Line extends ConsumerStatefulWidget {
-  final LineState data;
+  final LineMatch data;
   // the parent widget isn't responding to the click event, and I'm clueless on how to fix it.
   final void Function()? onTap;
 
@@ -28,7 +28,7 @@ class _LineState extends ConsumerState<Line> {
             alignment: Alignment.topRight,
             margin: const EdgeInsets.only(right: 16),
             child: Text(
-              '${widget.data.lineno}',
+              '${widget.data.lineNumber}',
               style: const TextStyle(color: Colors.grey),
             ),
           )),
@@ -38,7 +38,7 @@ class _LineState extends ConsumerState<Line> {
               final currentIndex = ref.watch(
                   positionProvider.select((value) => value.clickedIndex));
               Color? color;
-              if (currentIndex == widget.data.lineno) {
+              if (currentIndex == widget.data.lineNumber) {
                 color = const Color.fromARGB(80, 172, 175, 179);
               }
               return Container(color: color);
@@ -52,7 +52,7 @@ class _LineState extends ConsumerState<Line> {
 
                   ref
                       .read(positionProvider.notifier)
-                      .clickIndex(widget.data.lineno);
+                      .clickIndex(widget.data.lineNumber);
                 },
                 child: Align(
                     alignment: Alignment.topLeft,

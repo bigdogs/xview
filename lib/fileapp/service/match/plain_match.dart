@@ -4,7 +4,12 @@ import 'package:xview/fileapp/models/line_match.dart';
 
 Future<List<LineMatch>> plainMatch(List<String> lines, int lineStart,
     String matchWord, bool caseSensitive, bool matchWholeWord) async {
-  return [];
+  return lines.mapIndexed((idx, text) {
+    final (span, isMatch) =
+        plainMatchLine(text, matchWord, caseSensitive, matchWholeWord);
+    return LineMatch(
+        lineNumber: idx + lineStart, text: text, span: span, isMatch: isMatch);
+  }).toList();
 }
 
 //TODO: ...

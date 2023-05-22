@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:xview/provider/filedata.dart';
-import 'package:xview/provider/position.dart';
-import 'package:xview/view/widgets/line.dart';
-import 'package:xview/view/widgets/textlist.dart';
+import 'package:xview/fileapp/providers/file_matcher.dart';
+import 'package:xview/fileapp/providers/position.dart';
+import 'package:xview/fileapp/views/pages/file_view.dart';
+import 'package:xview/fileapp/views/widgets/line.dart';
+import 'package:xview/fileapp/views/widgets/textlist.dart';
 
-class MainPage extends ConsumerStatefulWidget {
-  const MainPage({super.key});
+class MainView extends ConsumerStatefulWidget {
+  const MainView({super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() {
@@ -14,7 +15,7 @@ class MainPage extends ConsumerStatefulWidget {
   }
 }
 
-class _MainPageState extends ConsumerState<MainPage> {
+class _MainPageState extends ConsumerState<MainView> {
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -29,9 +30,10 @@ class _MainPageState extends ConsumerState<MainPage> {
         _fakeJumpToIndex(next.jumpTargetIndex);
       }
     });
-    final content = ref.watch(fileDataProvider);
+    // final content = ref.watch(fileDataProvider);
+    final lines = ref.watch(allFileMatchProvider(FileView.id(context)));
 
-    // "SelectionArea" seems kind of wired here
+    // TODO: refactor "SelectionArea" if double/trip click is supported
     return Scrollbar(
         interactive: true,
         thumbVisibility: true,
@@ -39,10 +41,10 @@ class _MainPageState extends ConsumerState<MainPage> {
         child: SelectionArea(
             child: TextList.builder(
           controller: _scrollController,
-          itemTextCount: (index) => content.lineAtIndex(index).text.length,
-          itemCount: content.length(),
+          itemTextCount: (index) => lines[index].text.length,
+          itemCount: lines.length,
           itemBuilder: (c, index) {
-            return Line(data: content.lineAtIndex(index));
+            return Line(data: lines[index]);
           },
         )));
   }

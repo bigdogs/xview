@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:xview/fileapp/providers/file_manager.dart';
-import 'package:xview/utils/icons.dart';
+import 'package:xview/utils/consts.dart';
 
 import 'package:path/path.dart' as p;
 import 'package:collection/collection.dart';
@@ -78,21 +78,22 @@ class _TabState extends ConsumerState<_Tab> {
                 child: const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 4),
                     child: Icon(
-                      XIcons.close,
+                      CustomIcon.close,
                       size: 16,
                     )),
               ),
               const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 4),
                   child: Icon(
-                    XIcons.file,
+                    CustomIcon.file,
                     size: 14,
                     color: Color.fromARGB(255, 95, 114, 127),
                   )),
               Text(
                 p.basename(widget.path),
-                style:
-                    const TextStyle(color: Color.fromARGB(255, 12, 118, 247)),
+                style: const TextStyle(
+                    color: Color.fromARGB(255, 12, 118, 247),
+                    fontWeight: FontWeight.w500),
               ),
             ])));
   }

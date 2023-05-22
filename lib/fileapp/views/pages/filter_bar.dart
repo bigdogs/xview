@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:xview/fileapp/providers/file_setting.dart';
 import 'package:xview/fileapp/views/pages/file_view.dart';
-import 'package:xview/utils/icons.dart';
+import 'package:xview/utils/consts.dart';
 
 class FilterBar extends ConsumerStatefulWidget {
   const FilterBar({super.key});
@@ -15,72 +15,79 @@ class FilterBar extends ConsumerStatefulWidget {
 
 class _FilterBarState extends ConsumerState<FilterBar> {
   String _filter = "";
-  late FocusNode focusNode;
+  final FocusNode focusNode = FocusNode();
+  late final TextEditingController _controller;
 
   @override
   void initState() {
-    focusNode = FocusNode()
-      ..addListener(() {
-        setState(() {});
-      });
+    focusNode.addListener(() {
+      setState(() {});
+    });
+
+    _filter = ref.read(fileSettingProvider(FileView.id(context))).filterWord;
+    _controller = TextEditingController(text: _filter);
+    focusNode.requestFocus();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
+        color: CustomColor.filterBackground,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        child: SizedBox(
-            height: 28,
-            child: Row(
-              children: [
-                _SettingIcon(
-                  data: XIcons.case_sensitive,
-                  toolTips: "Match Case",
-                  selection: (p0) => p0.caseSensitive,
-                  updater: (p0) => p0.copy(caseSensitive: !p0.caseSensitive),
-                ),
-                _SettingIcon(
-                  data: XIcons.regex,
-                  toolTips: "Use Regular Expression",
-                  selection: (p0) => p0.useRegex,
-                  updater: (p0) => p0.copy(useRegex: !p0.useRegex),
-                ),
-                _SettingIcon(
-                  data: XIcons.whole_word,
-                  toolTips: "Match Whole Word",
-                  selection: (p0) => p0.matchWholeWord,
-                  updater: (p0) => p0.copy(matchWholeWord: !p0.matchWholeWord),
-                ),
-                Expanded(
-                    child: TextField(
-                  maxLines: 1,
-                  focusNode: focusNode,
-                  onChanged: (c) {
-                    _filter = c;
-                  },
-                  onEditingComplete: () {
-                    ref
-                        .read(
-                            fileSettingProvider(FileView.id(context)).notifier)
-                        .updateSetting((p0) => p0.copy(filterWord: _filter));
-                    focusNode.requestFocus();
-                  },
-                  decoration: InputDecoration(
-                      filled: true,
-                      hoverColor: Colors.transparent,
-                      contentPadding: EdgeInsets.zero,
-                      prefixIcon: const Icon(Icons.search, size: 16),
-                      suffix: _MatchCount(),
-                      fillColor: (focusNode.hasFocus || _filter.isNotEmpty)
-                          ? Colors.white
-                          : const Color.fromARGB(255, 215, 210, 209),
-                      border: const OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.all(Radius.circular(8)))),
-                ))
-              ],
-            )));
+        height: 32,
+        child: Row(
+          children: [
+            _SettingIcon(
+              data: CustomIcon.case_sensitive,
+              toolTips: "Match Case",
+              selection: (p0) => p0.caseSensitive,
+              updater: (p0) => p0.copy(caseSensitive: !p0.caseSensitive),
+            ),
+            _SettingIcon(
+              data: CustomIcon.regex,
+              toolTips: "Use Regular Expression",
+              selection: (p0) => p0.useRegex,
+              updater: (p0) => p0.copy(useRegex: !p0.useRegex),
+            ),
+            _SettingIcon(
+              data: CustomIcon.whole_word,
+              toolTips: "Match Whole Word",
+              selection: (p0) => p0.matchWholeWord,
+              updater: (p0) => p0.copy(matchWholeWord: !p0.matchWholeWord),
+            ),
+            Expanded(
+                child: TextField(
+              cursorHeight: 16,
+              cursorWidth: 1.1,
+              controller: _controller,
+              style: const TextStyle(fontSize: 13),
+              maxLines: 1,
+              focusNode: focusNode,
+              onChanged: (c) {
+                _filter = c;
+              },
+              onEditingComplete: () {
+                ref
+                    .read(fileSettingProvider(FileView.id(context)).notifier)
+                    .updateSetting((p0) => p0.copy(filterWord: _filter));
+                focusNode.requestFocus();
+              },
+              decoration: InputDecoration(
+                  filled: true,
+                  hoverColor: Colors.transparent,
+                  contentPadding: EdgeInsets.zero,
+                  prefixIcon: const Icon(Icons.search, size: 16),
+                  suffix: _MatchCount(),
+                  fillColor: (focusNode.hasFocus || _filter.isNotEmpty)
+                      ? Colors.white
+                      : const Color.fromARGB(255, 215, 210, 209),
+                  border: const OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.all(Radius.circular(8)))),
+            ))
+          ],
+        ));
   }
 }
 
@@ -104,7 +111,7 @@ class _MatchCountState extends ConsumerState<_MatchCount> {
         Padding(
             padding: EdgeInsets.symmetric(horizontal: 4),
             child: Icon(
-              XIcons.close_circle,
+              CustomIcon.close_circle,
               color: Color.fromARGB(255, 124, 124, 124),
               size: 20,
             ))

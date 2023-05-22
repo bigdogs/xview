@@ -1,22 +1,29 @@
+import 'dart:async';
+
 import 'package:hive_flutter/hive_flutter.dart';
 
 const String kBoxFileView = "file_view";
 
+// wait init complete
+final _complete = Completer();
+
 Future<void> initHiveBox() async {
   await Hive.initFlutter();
+  FileViewBox._instance = await Hive.openBox(kBoxFileView);
+  _complete.complete(0);
 }
 
 abstract class FileViewBox {
   // Although using global variable is not recommanded,
   // I'm currently unsure of how to improve this situation
-  static Box<Map>? _instance;
+  static late Box<Map> _instance;
 
   static Future<Box<Map>> _box() async {
-    if (_instance != null) {
-      return Future.value(_instance);
+    if (_complete.isCompleted) {
+      return _instance;
     }
-    _instance = await Hive.openBox(kBoxFileView);
-    return Future.value(_instance);
+    await _complete.future;
+    return _instance;
   }
 
   static Future<List<String>> allKeys() async =>
