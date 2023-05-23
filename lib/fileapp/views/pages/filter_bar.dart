@@ -60,7 +60,7 @@ class _FilterBarState extends ConsumerState<FilterBar> {
                 child: TextField(
               cursorWidth: 1.1,
               controller: _controller,
-              style: const TextStyle(fontSize: 13),
+              style: const TextStyle(fontSize: 12),
               maxLines: 1,
               focusNode: focusNode,
               onChanged: (c) {
