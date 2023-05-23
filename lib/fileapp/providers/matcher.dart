@@ -8,36 +8,39 @@ import 'package:xview/fileapp/service/match/regex_match.dart';
 import 'package:xview/utils/log.dart';
 
 class FileMatchNotifer extends StateNotifier<List<LineMatch>> {
-  final Ref ref;
   final String fileId;
 
   FileSetting? currentSetting;
+  FileData? currentFileData;
 
-  FileMatchNotifer(super.state, {required this.ref, required this.fileId});
+  FileMatchNotifer(super.state, {required this.fileId, this.currentSetting});
 
   onSettingUpdate(FileSetting? prev, FileSetting next) {
     currentSetting = next;
-
     if (shouldTriggerMatch(prev, next)) {
-      applyFileMatch(currentSetting, state.map((e) => e.text).toList(), 0)
-          .then((value) => state = value);
+      matchAll();
     }
   }
 
   onNewFileData(FileData? _, FileData next) {
-    // file may be empty if it is closed
-    if (next.resovledContent.isEmpty) {
-      return [];
+    if (next.createTime != currentFileData?.createTime) {
+      matchAll();
+    } else {
+      assert(next.resovledContent.length >= state.length);
+      final len = state.length;
+      applyFileMatch(
+              currentSetting, next.resovledContent.sublist(len), state.length)
+          .then((increment) {
+        assert(state.length == len);
+        state = [...state, ...increment];
+      });
     }
+    currentFileData = next;
+  }
 
-    assert(next.resovledContent.length >= state.length);
-    final len = state.length;
-    applyFileMatch(
-            currentSetting, next.resovledContent.sublist(len), state.length)
-        .then((increment) {
-      assert(state.length == len);
-      state = [...state, ...increment];
-    });
+  matchAll() async {
+    state = await applyFileMatch(
+        currentSetting, currentFileData?.resovledContent ?? [], 0);
   }
 
   static bool shouldTriggerMatch(FileSetting? prev, FileSetting next) {
@@ -77,11 +80,12 @@ final _hasFilterWordProvider = Provider.family<bool, String>((ref, fileId) {
   return filterWord != "";
 });
 
-final allFileMatchProvider =
+final allLineProvider =
     StateNotifierProvider.family<FileMatchNotifer, List<LineMatch>, String>(
         (ref, fileId) {
-  log.info('[provider] allFileMatchProvider $fileId');
-  final notifier = FileMatchNotifer([], ref: ref, fileId: fileId);
+  log.info('[provider@${identityHashCode(ref)}] allLineProvider $fileId');
+  final notifier = FileMatchNotifer([],
+      fileId: fileId, currentSetting: ref.read(fileSettingProvider(fileId)));
 
   ref.listen(fileSettingProvider(fileId), notifier.onSettingUpdate);
   ref.listen(fileDataProvider(fileId), notifier.onNewFileData);
@@ -89,11 +93,11 @@ final allFileMatchProvider =
   return notifier;
 });
 
-final filterFileMatchProvider =
-    Provider.autoDispose.family<List<LineMatch>, String>((ref, fileId) {
-  log.info('[provider] filterFileMatchProvider $fileId');
+final filterLineProvider =
+    Provider.family<List<LineMatch>, String>((ref, fileId) {
+  log.info('[provider@${identityHashCode(ref)}] filterLineProvider $fileId');
   final hasFilterWord = ref.watch(_hasFilterWordProvider(fileId));
-  final all = ref.watch(allFileMatchProvider(fileId));
+  final all = ref.watch(allLineProvider(fileId));
 
   if (!hasFilterWord) {
     return [];

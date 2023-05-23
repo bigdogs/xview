@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:xview/fileapp/providers/file_matcher.dart';
+import 'package:xview/fileapp/providers/matcher.dart';
 import 'package:xview/fileapp/providers/position.dart';
 import 'package:xview/fileapp/views/pages/file_view.dart';
 import 'package:xview/fileapp/views/widgets/line.dart';
@@ -31,7 +31,7 @@ class _MainPageState extends ConsumerState<MainView> {
       }
     });
     // final content = ref.watch(fileDataProvider);
-    final lines = ref.watch(allFileMatchProvider(FileView.id(context)));
+    final lines = ref.watch(allLineProvider(FileView.id(context)));
 
     // TODO: refactor "SelectionArea" if double/trip click is supported
     return Scrollbar(

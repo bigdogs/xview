@@ -10,11 +10,13 @@ class FileData {
   final String path;
   final List<String> resovledContent;
   final Stream<List<String>>? fileStream;
+  final String createTime;
 
-  const FileData(
+  FileData(
       {required this.path,
       required this.resovledContent,
-      required this.fileStream});
+      required this.fileStream})
+      : createTime = DateTime.now().toString();
 
   static FileData invalid(String path) {
     return FileData(path: path, resovledContent: const [], fileStream: null);

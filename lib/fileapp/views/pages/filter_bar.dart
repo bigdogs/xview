@@ -58,7 +58,6 @@ class _FilterBarState extends ConsumerState<FilterBar> {
             ),
             Expanded(
                 child: TextField(
-              cursorHeight: 16,
               cursorWidth: 1.1,
               controller: _controller,
               style: const TextStyle(fontSize: 13),

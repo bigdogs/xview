@@ -27,6 +27,7 @@ class _FileState extends ConsumerState<FileApp> with TickerProviderStateMixin {
   _activateHistory() async {
     final files = await ref.read(fileManager.notifier).loadHistoryFiles();
     for (final f in files) {
+      // load all settings to memory, we don't need lazy loading
       ref.read(fileSettingProvider(f).notifier);
     }
   }

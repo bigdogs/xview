@@ -75,7 +75,6 @@ class FileSettingNotifier extends StateNotifier<FileSetting> {
     } else {
       await FileViewBox.put(fileId, state.toMap());
     }
-    print('--- LocalFileSetting is loaded');
   }
 }
 
