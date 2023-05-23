@@ -29,12 +29,14 @@ class _MainPageState extends ConsumerState<MainView> {
         fileSettingProvider(FileView.id(context))
             .select((value) => value.jumpIndex), (previous, next) {
       if (next > 0) {
-        _fakeJumpToIndex(next.round());
+        //FIXME:
+        // print('jump to...  $next');
+        // _scrollController.jumpTo(encodeVisiableIndex(next.round()));
       }
     });
     final lines = ref.watch(allLineProvider(FileView.id(context)));
 
-    // TODO: refactor "SelectionArea" if double/trip click is supported
+    //  refactor "SelectionArea" if double/trip click is supported
     return Scrollbar(
         interactive: true,
         thumbVisibility: true,
@@ -44,15 +46,10 @@ class _MainPageState extends ConsumerState<MainView> {
           controller: _scrollController,
           itemTextCount: (index) => lines[index].text.length,
           itemCount: lines.length,
+          cacheExtent: 0,
           itemBuilder: (c, index) {
             return Line(data: lines[index]);
           },
         )));
-  }
-
-  _fakeJumpToIndex(int index) {
-    final fakeOffset =
-        double.parse('0.1987${index.toString().padLeft(7, '0')}6');
-    _scrollController.jumpTo(fakeOffset);
   }
 }

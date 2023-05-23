@@ -330,10 +330,7 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     return false;
   }
 
-  /// make `index` at center position if possible
-  ///
-  /// return the scroll offset with magic number `<offset>.10087<index>`
-  /// to make quick
+  // make `index` at center position if possible
   double _layoutTargetAtCenter(int targetIndex) {
     double offset = _estimateOffsetAtIndex(targetIndex);
     collectGarbage(childCount, 0);
@@ -364,19 +361,7 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     return 0;
   }
 
-  SliverGeometry? scrollToIndexCorrection() {
-    final scrollOffset = constraints.scrollOffset;
-    if (scrollOffset > 0.2 || scrollOffset < precisionErrorTolerance) {
-      return null;
-    }
-    // magic scroll offset :  0.1987<index>6
-    final s = scrollOffset.toString();
-    if (!s.startsWith("0.1987") || !s.endsWith('6')) {
-      return null;
-    }
-
-    final index = int.parse(s.substring(7, s.length - 1));
-
+  SliverGeometry correctToVisiableIndex(int index) {
     // if we're asked to scroll to a specific index, usually it's triggered by a scroll event...
     // (though there may be some exceptional cases which we're ignoring for now)
     //
@@ -421,6 +406,31 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     return offset > minOffset && offset < maxOffset;
   }
 
+  SliverGeometry correctToRestorePosition(int index, double offset) {
+    textlistLog
+        .info('request to restore position. index=$index, offset=$offset');
+    collectGarbage(childCount, 0);
+    addInitialChild(index: index, layoutOffset: offset);
+    return SliverGeometry(
+        scrollOffsetCorrection: offset - constraints.scrollOffset);
+  }
+
+  SliverGeometry? customCorrection() {
+    final scrollOffset = constraints.scrollOffset;
+    int? visiableIndex = decodeVisiableIndex(scrollOffset);
+    if (visiableIndex != null) {
+      return correctToVisiableIndex(visiableIndex);
+    }
+
+    // with cache origin?
+    (int, double)? position = decodeRestorePosition(scrollOffset);
+    if (position != null) {
+      return correctToRestorePosition(position.$1, position.$2);
+    }
+
+    return null;
+  }
+
   @override
   void performLayout() {
     childManager.didStartLayout();
@@ -430,7 +440,7 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     textlistLog.info(
         'offset-> ${constraints.scrollOffset}, cacheOrigin: ${constraints.cacheOrigin}, prev -> ${preConstraints?.scrollOffset}');
 
-    final correct = scrollToIndexCorrection();
+    final correct = customCorrection();
     if (correct != null) {
       geometry = correct;
       return;
@@ -680,7 +690,7 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
       childManager.setDidUnderflow(true);
     }
     childManager.didFinishLayout();
-    notifyLayoutResult();
+    // notifyLayoutResult();
   }
 
   notifyLayoutResult() {
@@ -690,4 +700,49 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
       notifier(pd.index!, pd.layoutOffset!);
     }
   }
+}
+
+// max:     9223372036854775807
+// max-web: 9007199254740991
+// 1 + 6 + 11
+const int kVisiableIndex = 8000000000000000000;
+const int kVisiableIndexMax = 9000000000000000000;
+
+const int kRestorePosition = 7000000000000000000;
+const int kRestorePositionMax = 8000000000000000000;
+
+const int kMaxIndex = 9999999;
+const int kMaxOffset = 99999999999;
+
+double encodeVisiableIndex(int index) {
+  assert(index < kMaxIndex);
+  final s = '8${index.toString().padLeft(7, '0')}00000000000';
+  double v = double.parse(s);
+  return v;
+}
+
+int? decodeVisiableIndex(double offset) {
+  if (offset > kVisiableIndex && offset < kVisiableIndexMax) {
+    final s = offset.toString();
+    return int.parse(s.substring(1, 8));
+  }
+  return null;
+}
+
+double encodeRestorePosition(int firstChildIndex, double firstChildLayout) {
+  assert(firstChildIndex < kMaxIndex);
+  assert(firstChildLayout < kMaxOffset);
+
+  final s = '7${firstChildIndex.toString().padLeft(7, '0')}00000000000';
+  return double.parse(s) + firstChildLayout;
+}
+
+(int, double)? decodeRestorePosition(double offset) {
+  if (offset > kRestorePosition && offset < kRestorePositionMax) {
+    final s = offset.toString();
+    final index = int.parse(s.substring(1, 8));
+    final layout = double.parse(s.substring(8));
+    return (index, layout);
+  }
+  return null;
 }
