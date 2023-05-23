@@ -1,5 +1,3 @@
-import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:xview/fileapp/models/line_match.dart';
 import 'package:xview/fileapp/service/match/plain_match.dart';
 

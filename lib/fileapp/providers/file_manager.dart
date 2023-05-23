@@ -2,6 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:xview/fileapp/providers/file_data_provider.dart';
+import 'package:xview/fileapp/providers/file_setting.dart';
+import 'package:xview/fileapp/providers/matcher.dart';
 import 'package:xview/fileapp/service/hive.dart';
 import 'package:xview/utils/log.dart';
 
@@ -42,11 +45,11 @@ class FileManager {
     );
   }
 
-  FileManager _deleteFile(String path) {
+  FileManager? _deleteFile(String path) {
     final index = this.files.indexWhere((f) => f.path == path);
     if (index == -1) {
       // keep current state if path does not alreay exists in the list
-      return this;
+      return null;
     }
 
     // we should make a copy before removing any element
@@ -77,7 +80,23 @@ class FileManagerNotifier extends Notifier<FileManager> {
   }
 
   closeFile(String file) async {
-    state = state._deleteFile(file);
+    final newState = state._deleteFile(file);
+    if (newState == null) {
+      return;
+    }
+
+    state = newState;
+
+    ref.read(fileSettingProvider(file).notifier).deleteLocalSetting();
+
+    // invalidating all family providers, Despite the fact that the provider
+    // will be created, it may still be necessary to do this in order to reduce
+    // memory pressue
+    ref.invalidate(fileSettingProvider(file));
+    ref.invalidate(fileDataProvider(file));
+    ref.invalidate(allLineProvider(file));
+    ref.invalidate(filterLineProvider(file));
+    ref.invalidate(hasFilterWordProvider(file));
   }
 
   Future<List<String>> loadHistoryFiles() async {
@@ -103,17 +122,20 @@ class FileManagerNotifier extends Notifier<FileManager> {
   }
 
   openFile(String file) async {
-    log.info('openFile "$file"');
     if (state.containsFile(file)) {
+      log.info('active file $file');
       setActiveFile(file);
       return;
     }
+
     // open a new file
+    log.info('openFile "$file"');
+    ref.read(fileSettingProvider(file).notifier).loadLocalFileSetting();
     state = state._addFile(file);
   }
 }
 
 final fileManager = NotifierProvider<FileManagerNotifier, FileManager>(() {
-  log.info('[provider] fileManager');
+  log.info('+provider fileManager');
   return FileManagerNotifier();
 });

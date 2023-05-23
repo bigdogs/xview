@@ -72,9 +72,7 @@ class _TabState extends ConsumerState<_Tab> {
                 color: const Color.fromARGB(255, 230, 230, 230),
               ),
               GestureDetector(
-                onTap: () {
-                  ref.read(fileManager.notifier).closeFile(widget.path);
-                },
+                onTap: _closeTap,
                 child: const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 4),
                     child: Icon(
@@ -96,5 +94,9 @@ class _TabState extends ConsumerState<_Tab> {
                     fontWeight: FontWeight.w500),
               ),
             ])));
+  }
+
+  _closeTap() async {
+    ref.read(fileManager.notifier).closeFile(widget.path);
   }
 }

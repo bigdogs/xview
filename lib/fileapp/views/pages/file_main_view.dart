@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:xview/fileapp/providers/file_setting.dart';
 import 'package:xview/fileapp/providers/matcher.dart';
-import 'package:xview/fileapp/providers/position.dart';
 import 'package:xview/fileapp/views/pages/file_view.dart';
 import 'package:xview/fileapp/views/widgets/line.dart';
 import 'package:xview/fileapp/views/widgets/textlist.dart';
@@ -25,12 +25,13 @@ class _MainPageState extends ConsumerState<MainView> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(positionProvider, (previous, next) {
-      if (next.jumpTargetIndex != -1 && next.jumpCount != previous?.jumpCount) {
-        _fakeJumpToIndex(next.jumpTargetIndex);
+    ref.listen(
+        fileSettingProvider(FileView.id(context))
+            .select((value) => value.jumpIndex), (previous, next) {
+      if (next > 0) {
+        _fakeJumpToIndex(next.round());
       }
     });
-    // final content = ref.watch(fileDataProvider);
     final lines = ref.watch(allLineProvider(FileView.id(context)));
 
     // TODO: refactor "SelectionArea" if double/trip click is supported

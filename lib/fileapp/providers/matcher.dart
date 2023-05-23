@@ -5,7 +5,6 @@ import 'package:xview/fileapp/providers/file_setting.dart';
 import 'package:xview/fileapp/service/match/nop_match.dart';
 import 'package:xview/fileapp/service/match/plain_match.dart';
 import 'package:xview/fileapp/service/match/regex_match.dart';
-import 'package:xview/utils/log.dart';
 
 class FileMatchNotifer extends StateNotifier<List<LineMatch>> {
   final String fileId;
@@ -23,18 +22,15 @@ class FileMatchNotifer extends StateNotifier<List<LineMatch>> {
   }
 
   onNewFileData(FileData? _, FileData next) {
-    if (next.createTime != currentFileData?.createTime) {
-      matchAll();
-    } else {
-      assert(next.resovledContent.length >= state.length);
-      final len = state.length;
-      applyFileMatch(
-              currentSetting, next.resovledContent.sublist(len), state.length)
-          .then((increment) {
-        assert(state.length == len);
-        state = [...state, ...increment];
-      });
-    }
+    assert(next.resovledContent.length >= state.length);
+    final len = state.length;
+    applyFileMatch(
+            currentSetting, next.resovledContent.sublist(len), state.length)
+        .then((increment) {
+      assert(state.length == len);
+      state = [...state, ...increment];
+    });
+
     currentFileData = next;
   }
 
@@ -74,7 +70,7 @@ class FileMatchNotifer extends StateNotifier<List<LineMatch>> {
   }
 }
 
-final _hasFilterWordProvider = Provider.family<bool, String>((ref, fileId) {
+final hasFilterWordProvider = Provider.family<bool, String>((ref, fileId) {
   final filterWord = ref
       .watch(fileSettingProvider(fileId).select((value) => value.filterWord));
   return filterWord != "";
@@ -83,7 +79,6 @@ final _hasFilterWordProvider = Provider.family<bool, String>((ref, fileId) {
 final allLineProvider =
     StateNotifierProvider.family<FileMatchNotifer, List<LineMatch>, String>(
         (ref, fileId) {
-  log.info('[provider@${identityHashCode(ref)}] allLineProvider $fileId');
   final notifier = FileMatchNotifer([],
       fileId: fileId, currentSetting: ref.read(fileSettingProvider(fileId)));
 
@@ -95,8 +90,7 @@ final allLineProvider =
 
 final filterLineProvider =
     Provider.family<List<LineMatch>, String>((ref, fileId) {
-  log.info('[provider@${identityHashCode(ref)}] filterLineProvider $fileId');
-  final hasFilterWord = ref.watch(_hasFilterWordProvider(fileId));
+  final hasFilterWord = ref.watch(hasFilterWordProvider(fileId));
   final all = ref.watch(allLineProvider(fileId));
 
   if (!hasFilterWord) {

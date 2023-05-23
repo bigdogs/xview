@@ -10,16 +10,14 @@ class FileData {
   final String path;
   final List<String> resovledContent;
   final Stream<List<String>>? fileStream;
-  final String createTime;
 
-  FileData(
+  const FileData(
       {required this.path,
       required this.resovledContent,
-      required this.fileStream})
-      : createTime = DateTime.now().toString();
+      required this.fileStream});
 
-  static FileData invalid(String path) {
-    return FileData(path: path, resovledContent: const [], fileStream: null);
+  static FileData invalid() {
+    return const FileData(path: "", resovledContent: [], fileStream: null);
   }
 
   FileData finish() {
@@ -45,7 +43,6 @@ class FileDataNotifier extends StateNotifier<FileData> {
     state.fileStream?.listen((chunk) {
       state = state.onNewData(chunk);
     }, onDone: () {
-      log.info('${state.path} is fully loaded');
       state = state.finish();
     }, onError: (e) {
       log.severe('${state.path} load error: e');
@@ -56,7 +53,7 @@ class FileDataNotifier extends StateNotifier<FileData> {
 final fileDataProvider =
     StateNotifierProvider.family<FileDataNotifier, FileData, String>(
         (ref, fileId) {
-  log.info('[provider] fileDataProvider $fileId');
+  FileData fileData = FileData.invalid();
   try {
     FileMeta fileMeta = ref.watch(fileManager.select((value) => value.files
         .firstWhere((element) => element.path == fileId,
@@ -64,12 +61,15 @@ final fileDataProvider =
 
     if (fileMeta != FileMeta.invalid) {
       final s = readFileAsStream(fileMeta.path);
-      return FileDataNotifier(FileData(
-          path: fileMeta.path, resovledContent: const [], fileStream: s));
+      fileData = FileData(
+          path: fileMeta.path, resovledContent: const [], fileStream: s);
     }
   } catch (e) {
     // handle error
     log.severe('fileDataProvider error: $e');
   }
-  return FileDataNotifier(FileData.invalid(fileId));
+
+  log.info(
+      '[$fileId] +provider fileDataProvider@${fileData == FileData.invalid() ? -1 : identityHashCode(fileData)}');
+  return FileDataNotifier(fileData);
 });

@@ -41,15 +41,26 @@ class _FileState extends ConsumerState<FileApp> with TickerProviderStateMixin {
 
   Widget _buildAppBody(BuildContext context) {
     final files = ref.watch(fileManager.select((value) => value.files));
+    Widget widget;
+
     if (files.isEmpty) {
-      return const NoFile();
+      widget = const NoFile();
+    } else {
+      widget = _buildFileApp(files);
     }
 
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 100),
+      child: widget,
+    );
+  }
+
+  Widget _buildFileApp(List<FileMeta> files) {
     // whenever we create a new tabview, we must also create a new
     // controller
     //
     TabController controller = TabController(
-        // animationDuration: Duration.zero,
+        animationDuration: const Duration(milliseconds: 300),
         length: files.length,
         vsync: this,
         // The documentation states that we should not use `ref.read` in the build method
@@ -71,6 +82,7 @@ class _FileState extends ConsumerState<FileApp> with TickerProviderStateMixin {
         FileTabBar(
             files: files.map((e) => e.path).toList(), controller: controller),
         Expanded(
+            //TODO: The default tab animation looks not very good...
             child: TabBarView(
           controller: controller,
           children: files.map((e) => FileView(fileId: e.path)).toList(),

@@ -12,6 +12,7 @@ import 'package:xview/utils/log.dart';
 // To avoid this issue, we have defined our own custom `TextList`
 class TextList extends BoxScrollView {
   final int Function(int) itemTextCount;
+  final Function(int, double)? layoutNotifier;
 
   TextList.builder({
     super.key,
@@ -24,6 +25,7 @@ class TextList extends BoxScrollView {
     super.padding,
     required NullableIndexedWidgetBuilder itemBuilder,
     required this.itemTextCount,
+    this.layoutNotifier,
     ChildIndexGetter? findChildIndexCallback,
     int? itemCount,
     bool addAutomaticKeepAlives = true,
@@ -38,6 +40,7 @@ class TextList extends BoxScrollView {
   })  : childrenDelegate = _TextListBuilderDelegate(
           itemBuilder,
           itemTextCount: itemTextCount,
+          layoutNotifier: layoutNotifier,
           findChildIndexCallback: findChildIndexCallback,
           childCount: itemCount,
           addAutomaticKeepAlives: addAutomaticKeepAlives,
@@ -58,9 +61,11 @@ class TextList extends BoxScrollView {
 
 class _TextListBuilderDelegate extends SliverChildBuilderDelegate {
   final int Function(int) itemTextCount;
+  final Function(int, double)? layoutNotifier;
 
   const _TextListBuilderDelegate(super.builder,
       {required this.itemTextCount,
+      this.layoutNotifier,
       super.findChildIndexCallback,
       super.childCount,
       super.addAutomaticKeepAlives,
@@ -675,5 +680,14 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
       childManager.setDidUnderflow(true);
     }
     childManager.didFinishLayout();
+    notifyLayoutResult();
+  }
+
+  notifyLayoutResult() {
+    final notifier = _delegate().layoutNotifier;
+    if (notifier != null) {
+      final pd = _pd(firstChild!);
+      notifier(pd.index!, pd.layoutOffset!);
+    }
   }
 }

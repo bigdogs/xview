@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:xview/fileapp/providers/file_manager.dart';
 import 'package:xview/fileapp/service/hive.dart';
+import 'package:xview/utils/log.dart';
 
 @immutable
 class FileSetting {
@@ -10,27 +10,45 @@ class FileSetting {
   final bool matchWholeWord;
   final bool useRegex;
   final String filterWord;
+  final int shadowIndex;
+  // we use fraical part to represent click times
+  final double jumpIndex;
+  final (int, double) mainviewPosition;
+  final (int, double) filterviewPosition;
 
-  const FileSetting(
-      {this.percentOfFilterView = 0.2,
-      this.caseSensitive = true,
-      this.matchWholeWord = false,
-      this.useRegex = false,
-      this.filterWord = ''});
+  const FileSetting({
+    this.percentOfFilterView = 0.2,
+    this.caseSensitive = true,
+    this.matchWholeWord = false,
+    this.useRegex = false,
+    this.filterWord = '',
+    this.shadowIndex = -1,
+    this.jumpIndex = -1,
+    this.mainviewPosition = (0, 0),
+    this.filterviewPosition = (0, 0),
+  });
 
-  FileSetting copy(
-      {double? percentOfFilterView,
-      bool? caseSensitive,
-      bool? matchWholeWord,
-      bool? useRegex,
-      String? filterWord}) {
+  FileSetting copy({
+    double? percentOfFilterView,
+    bool? caseSensitive,
+    bool? matchWholeWord,
+    bool? useRegex,
+    String? filterWord,
+    int? shadowIndex,
+    double? jumpIndex,
+    (int, double)? mainviewPosition,
+    (int, double)? filterviewPosition,
+  }) {
     return FileSetting(
-      percentOfFilterView: percentOfFilterView ?? this.percentOfFilterView,
-      caseSensitive: caseSensitive ?? this.caseSensitive,
-      matchWholeWord: matchWholeWord ?? this.matchWholeWord,
-      useRegex: useRegex ?? this.useRegex,
-      filterWord: filterWord ?? this.filterWord,
-    );
+        percentOfFilterView: percentOfFilterView ?? this.percentOfFilterView,
+        caseSensitive: caseSensitive ?? this.caseSensitive,
+        matchWholeWord: matchWholeWord ?? this.matchWholeWord,
+        useRegex: useRegex ?? this.useRegex,
+        filterWord: filterWord ?? this.filterWord,
+        shadowIndex: shadowIndex ?? this.shadowIndex,
+        jumpIndex: jumpIndex ?? this.jumpIndex,
+        mainviewPosition: mainviewPosition ?? this.mainviewPosition,
+        filterviewPosition: filterviewPosition ?? this.filterviewPosition);
   }
 
   Map toMap() {
@@ -39,17 +57,36 @@ class FileSetting {
       'caseSensitive': caseSensitive,
       'matchWholeWord': matchWholeWord,
       'useRegex': useRegex,
-      'filterWord': filterWord
+      'filterWord': filterWord,
+      'shadowIndex': shadowIndex,
+      'mainviewPositionIndex': mainviewPosition.$1,
+      'mainviewPositionOffset': mainviewPosition.$2,
+      'filterviewPositionIndex': filterviewPosition.$1,
+      'filterviewPositionOffset': filterviewPosition.$2,
     };
   }
 
   static FileSetting fromMap(Map m) {
+    int mi = m["mainviewPositionIndex"] ?? 0;
+    double mf = m['mainviewPositionOffset'] ?? 0;
+    int fi = m['filterviewPositionIndex'] ?? 0;
+    double ff = m['filterviewPositionOffset'] ?? 0;
+
     return const FileSetting().copy(
-        percentOfFilterView: m['percentOfFilterView'],
-        caseSensitive: m['caseSensitive'],
-        matchWholeWord: m['matchWholeWord'],
-        useRegex: m['useRegex'],
-        filterWord: m['filterWord']);
+      percentOfFilterView: m['percentOfFilterView'],
+      caseSensitive: m['caseSensitive'],
+      matchWholeWord: m['matchWholeWord'],
+      useRegex: m['useRegex'],
+      filterWord: m['filterWord'],
+      shadowIndex: m['shadowIndex'],
+      mainviewPosition: (mi, mf),
+      filterviewPosition: (fi, ff),
+    );
+  }
+
+  @override
+  String toString() {
+    return '"$filterWord"|$percentOfFilterView';
   }
 }
 
@@ -64,15 +101,28 @@ class FileSettingNotifier extends StateNotifier<FileSetting> {
     FileViewBox.put(fileId, state.toMap());
   }
 
-  _deleteLocalSetting() async {
+  void jumpToIndex(int target) {
+    double index = state.jumpIndex;
+    if (index.round() != target) {
+      index = target.toDouble();
+    } else {
+      index += 0.00000001;
+    }
+    state = state.copy(jumpIndex: index);
+  }
+
+  deleteLocalSetting() async {
+    log.info('[$fileId] delete local setting');
     FileViewBox.delete(fileId);
   }
 
-  _loadLocalFileSetting() async {
+  loadLocalFileSetting() async {
     final setting = await FileViewBox.get(fileId);
     if (setting != null) {
       state = FileSetting.fromMap(setting);
+      log.info('[$fileId] load local setting: $state');
     } else {
+      log.info('[$fileId] no local setting');
       await FileViewBox.put(fileId, state.toMap());
     }
   }
@@ -82,14 +132,8 @@ final fileSettingProvider =
     StateNotifierProvider.family<FileSettingNotifier, FileSetting, String>(
         (ref, fileId) {
   final notifier = FileSettingNotifier(const FileSetting(), fileId: fileId);
-  notifier._loadLocalFileSetting();
-
-  ref.read(fileManager).containsFile(fileId);
-  ref.listen(fileManager, (_, next) {
-    if (!next.containsFile(fileId)) {
-      notifier._deleteLocalSetting();
-    }
-  });
+  log.info(
+      '[$fileId] +provider fileSettingProvider@${identityHashCode(notifier)}');
 
   return notifier;
 });

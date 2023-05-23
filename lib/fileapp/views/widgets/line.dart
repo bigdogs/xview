@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:xview/fileapp/models/line_match.dart';
-import 'package:xview/fileapp/providers/position.dart';
+import 'package:xview/fileapp/providers/file_setting.dart';
+import 'package:xview/fileapp/views/pages/file_view.dart';
 
 class Line extends ConsumerStatefulWidget {
   final LineMatch data;
@@ -36,7 +37,8 @@ class _LineState extends ConsumerState<Line> {
               child: Stack(children: [
             Positioned.fill(child: Builder(builder: (_) {
               final currentIndex = ref.watch(
-                  positionProvider.select((value) => value.clickedIndex));
+                  fileSettingProvider(FileView.id(context))
+                      .select((value) => value.shadowIndex));
               Color? color;
               if (currentIndex == widget.data.lineNumber) {
                 color = const Color.fromARGB(80, 172, 175, 179);
@@ -51,8 +53,9 @@ class _LineState extends ConsumerState<Line> {
                   }
 
                   ref
-                      .read(positionProvider.notifier)
-                      .clickIndex(widget.data.lineNumber);
+                      .read(fileSettingProvider(FileView.id(context)).notifier)
+                      .updateSetting(
+                          (p0) => p0.copy(shadowIndex: widget.data.lineNumber));
                 },
                 child: Align(
                     alignment: Alignment.topLeft,
