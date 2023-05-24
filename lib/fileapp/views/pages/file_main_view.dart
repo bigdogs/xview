@@ -29,7 +29,6 @@ class _MainPageState extends ConsumerState<MainView> {
         fileSettingProvider(FileView.id(context))
             .select((value) => value.jumpIndex), (previous, next) {
       if (next > 0) {
-        print('jump to...  $next');
         _scrollController.jumpTo(encodeVisiableIndex(next.round()));
       }
     });
@@ -45,7 +44,6 @@ class _MainPageState extends ConsumerState<MainView> {
           controller: _scrollController,
           itemTextCount: (index) => lines[index].text.length,
           itemCount: lines.length,
-          cacheExtent: 0,
           itemBuilder: (c, index) {
             return Line(data: lines[index]);
           },

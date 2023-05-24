@@ -48,7 +48,6 @@ class TextList extends BoxScrollView {
         ),
         super(
           semanticChildCount: semanticChildCount ?? itemCount,
-          physics: _CustomPhysics(),
         );
 
   final SliverChildDelegate childrenDelegate;
@@ -71,15 +70,6 @@ class _TextListBuilderDelegate extends SliverChildBuilderDelegate {
       super.addAutomaticKeepAlives,
       super.addRepaintBoundaries,
       super.addSemanticIndexes});
-}
-
-class _CustomPhysics extends AlwaysScrollableScrollPhysics {
-  @override
-  Simulation? createBallisticSimulation(
-      ScrollMetrics position, double velocity) {
-    print('position: $position, $velocity');
-    return null;
-  }
 }
 
 /// [SliverList]
@@ -393,11 +383,11 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     }
 
     final targetOffset = _layoutTargetAtCenter(index);
-    textlistLog
-        .info('layout $index at center with target offset: $targetOffset');
+    final correct = targetOffset - constraints.scrollOffset;
+    textlistLog.info(
+        'layout $index at center with target offset: $targetOffset. correct: $correct');
 
-    return SliverGeometry(
-        scrollOffsetCorrection: targetOffset - constraints.scrollOffset);
+    return SliverGeometry(scrollOffsetCorrection: correct);
   }
 
   bool isOffsetVisiableOnLastLayout(double offset) {
@@ -761,47 +751,36 @@ class _Position extends ScrollPositionWithSingleContext {
   }
 }
 
-// max:     9223372036854775807
-// max-web: 9007199254740991
-// 1 + 6 + 11
-const int kVisiableIndex = 8000000000000000000;
-const int kVisiableIndexMax = 9000000000000000000;
-
-const int kRestorePosition = 7000000000000000000;
-const int kRestorePositionMax = 8000000000000000000;
-
-const int kMaxIndex = 9999999;
-const int kMaxOffset = 99999999999;
-
 double encodeVisiableIndex(int index) {
-  assert(index < kMaxIndex);
-  final s = '8${index.toString().padLeft(7, '0')}00000000000';
-  double v = double.parse(s);
-  return v;
+  final s = '0.1111${index.toString().padLeft(7, '0')}1';
+  return double.parse(s);
 }
 
 int? decodeVisiableIndex(double offset) {
-  if (offset > kVisiableIndex && offset < kVisiableIndexMax) {
+  if (offset > precisionErrorTolerance && offset < 0.2) {
     final s = offset.toString();
-    return int.parse(s.substring(1, 8));
+    if (s.length == 14 && s.startsWith("0.1111") && s.endsWith('1')) {
+      return int.parse(s.substring(6, 13));
+    }
   }
   return null;
 }
 
+// 1.022200000012
+// ~~~222~~~~~~~2
 double encodeRestorePosition(int firstChildIndex, double firstChildLayout) {
-  assert(firstChildIndex < kMaxIndex);
-  assert(firstChildLayout < kMaxOffset);
-
-  final s = '7${firstChildIndex.toString().padLeft(7, '0')}00000000000';
-  return double.parse(s) + firstChildLayout;
+  final s = firstChildLayout.toStringAsPrecision(1);
+  return double.parse('${s}222${firstChildIndex.toString().padLeft(7, '0')}2');
 }
 
 (int, double)? decodeRestorePosition(double offset) {
-  if (offset > kRestorePosition && offset < kRestorePositionMax) {
-    final s = offset.toString();
-    final index = int.parse(s.substring(1, 8));
-    final layout = double.parse(s.substring(8));
-    return (index, layout);
+  final s = offset.toString();
+  final len = s.length;
+
+  if (s.indexOf('.') == len - 12) {
+    if (s.endsWith('2') && s.substring(len - 10, len - 7) == "222") {
+      return (int.parse(s.substring(len - 6, len - 1)), offset);
+    }
   }
   return null;
 }

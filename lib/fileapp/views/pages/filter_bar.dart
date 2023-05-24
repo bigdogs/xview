@@ -32,7 +32,6 @@ class _FilterBarState extends ConsumerState<FilterBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Container();
     return Container(
         color: CustomColor.filterBackground,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
