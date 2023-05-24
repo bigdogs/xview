@@ -12,7 +12,7 @@ import 'package:xview/utils/log.dart';
 // To avoid this issue, we have defined our own custom `TextList`
 class TextList extends BoxScrollView {
   final int Function(int) itemTextCount;
-  final Function(int, double)? layoutNotifier;
+  final Function(String)? layoutNotifier;
 
   TextList.builder({
     super.key,
@@ -60,7 +60,7 @@ class TextList extends BoxScrollView {
 
 class _TextListBuilderDelegate extends SliverChildBuilderDelegate {
   final int Function(int) itemTextCount;
-  final Function(int, double)? layoutNotifier;
+  final Function(String)? layoutNotifier;
 
   const _TextListBuilderDelegate(super.builder,
       {required this.itemTextCount,
@@ -405,13 +405,13 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     return offset > minOffset && offset < maxOffset;
   }
 
-  SliverGeometry correctToRestorePosition(int index, double offset) {
-    textlistLog
-        .info('request to restore position. index=$index, offset=$offset');
+  SliverGeometry correctToRestorePosition(double lf, int fli, double flo) {
+    textlistLog.info(
+        'request to restore position. layoutOffset: $lf, firstLayoutIndex: $fli, firstLayoutOffset: $flo');
     collectGarbage(childCount, 0);
-    addInitialChild(index: index, layoutOffset: offset);
+    addInitialChild(index: fli, layoutOffset: flo);
     return SliverGeometry(
-        scrollOffsetCorrection: offset - constraints.scrollOffset);
+        scrollOffsetCorrection: flo - constraints.scrollOffset);
   }
 
   SliverGeometry? customCorrection() {
@@ -422,9 +422,9 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     }
 
     // with cache origin?
-    (int, double)? position = decodeRestorePosition(scrollOffset);
+    (double, int, double)? position = decodeRestorePosition(scrollOffset);
     if (position != null) {
-      return correctToRestorePosition(position.$1, position.$2);
+      return correctToRestorePosition(position.$1, position.$2, position.$3);
     }
 
     return null;
@@ -550,9 +550,9 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
             //   scrollOffsetCorrection: -firstChildScrollOffset,
             // );
             // return;
-            textlistLog
-                .info('the index has reached to 0 but the offset is not');
-            _pd(firstChild!).index = 0;
+            textlistLog.info(
+                'the scroll offset has been reached to 0. but the index is not 0');
+            //TODO:
             _pd(firstChild!).layoutOffset = 0;
             earliestUsefulChild = firstChild!;
             break;
@@ -698,14 +698,16 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
       childManager.setDidUnderflow(true);
     }
     childManager.didFinishLayout();
-    // notifyLayoutResult();
+    // Do not notify on laying out
+    Future(() => notifyLayoutResult());
   }
 
   notifyLayoutResult() {
     final notifier = _delegate().layoutNotifier;
     if (notifier != null) {
       final pd = _pd(firstChild!);
-      notifier(pd.index!, pd.layoutOffset!);
+      notifier(encodeRestorePosition(
+          constraints.scrollOffset, pd.index!, pd.layoutOffset!));
     }
   }
 }
@@ -766,20 +768,41 @@ int? decodeVisiableIndex(double offset) {
   return null;
 }
 
-// 1.022200000012
-// ~~~222~~~~~~~2
-double encodeRestorePosition(int firstChildIndex, double firstChildLayout) {
-  final s = firstChildLayout.toStringAsPrecision(1);
-  return double.parse('${s}222${firstChildIndex.toString().padLeft(7, '0')}2');
+// 4150.16~~~~~.......77
+//         gap   index
+String encodeRestorePosition(
+  double layoutOffset,
+  int firstChildIndex,
+  double firstChildLayoutOffset,
+) {
+  assert(layoutOffset >= firstChildLayoutOffset);
+  double flo = double.parse(firstChildLayoutOffset.toStringAsFixed(2));
+  double lo = double.parse(layoutOffset.toStringAsFixed(2));
+
+  // 2.22 => 002.22
+  double gap = double.parse((lo - flo).toStringAsFixed(2));
+  String gaps;
+  if (gap > 999.99) {
+    gaps = "99999";
+  } else {
+    gaps = gap.toString().replaceFirst('.', '').padLeft(5, '0');
+  }
+
+  return '$flo$gaps${firstChildIndex.toString().padLeft(7, '0')}77';
 }
 
-(int, double)? decodeRestorePosition(double offset) {
+(double, int, double)? decodeRestorePosition(double offset) {
   final s = offset.toString();
   final len = s.length;
 
-  if (s.indexOf('.') == len - 12) {
-    if (s.endsWith('2') && s.substring(len - 10, len - 7) == "222") {
-      return (int.parse(s.substring(len - 6, len - 1)), offset);
+  final dot = s.indexOf('.');
+  if (dot == len - 17) {
+    if (s.endsWith("77")) {
+      final flo = double.parse(offset.toStringAsFixed(2));
+      final gap = double.parse(
+          '${s.substring(dot + 3, dot + 8)}.${s.substring(dot + 8, dot + 10)}');
+      final index = int.parse(s.substring(dot + 10, dot + 17));
+      return (flo + gap, index, flo);
     }
   }
   return null;

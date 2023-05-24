@@ -25,6 +25,12 @@ class FilterView extends ConsumerWidget {
               controller: controller,
               itemTextCount: (index) => lines[index].text.length,
               itemCount: lines.length,
+              layoutNotifier: (s) {
+                // ref
+                //     .read(fileSettingProvider(FileView.id(context)).notifier)
+                //     .updateSetting(
+                //         (p0) => p0.copy(filterviewPosition: (idx, offset)));
+              },
               itemBuilder: (c, index) {
                 final data = lines[index];
                 return Line(

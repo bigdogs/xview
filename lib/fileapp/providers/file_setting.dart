@@ -13,8 +13,8 @@ class FileSetting {
   final int shadowIndex;
   // we use fraical part to represent click times
   final double jumpIndex;
-  final (int, double) mainviewPosition;
-  final (int, double) filterviewPosition;
+  final String mainviewPosition;
+  final String filterviewPosition;
 
   const FileSetting({
     this.percentOfFilterView = 0.2,
@@ -24,8 +24,8 @@ class FileSetting {
     this.filterWord = '',
     this.shadowIndex = -1,
     this.jumpIndex = -1,
-    this.mainviewPosition = (0, 0),
-    this.filterviewPosition = (0, 0),
+    this.mainviewPosition = "",
+    this.filterviewPosition = "",
   });
 
   FileSetting copy({
@@ -36,8 +36,8 @@ class FileSetting {
     String? filterWord,
     int? shadowIndex,
     double? jumpIndex,
-    (int, double)? mainviewPosition,
-    (int, double)? filterviewPosition,
+    String? mainviewPosition,
+    String? filterviewPosition,
   }) {
     return FileSetting(
         percentOfFilterView: percentOfFilterView ?? this.percentOfFilterView,
@@ -59,19 +59,12 @@ class FileSetting {
       'useRegex': useRegex,
       'filterWord': filterWord,
       'shadowIndex': shadowIndex,
-      'mainviewPositionIndex': mainviewPosition.$1,
-      'mainviewPositionOffset': mainviewPosition.$2,
-      'filterviewPositionIndex': filterviewPosition.$1,
-      'filterviewPositionOffset': filterviewPosition.$2,
+      'mainviewPosition': mainviewPosition,
+      'filterviewPosition': filterviewPosition,
     };
   }
 
   static FileSetting fromMap(Map m) {
-    int mi = m["mainviewPositionIndex"] ?? 0;
-    double mf = m['mainviewPositionOffset'] ?? 0;
-    int fi = m['filterviewPositionIndex'] ?? 0;
-    double ff = m['filterviewPositionOffset'] ?? 0;
-
     return const FileSetting().copy(
       percentOfFilterView: m['percentOfFilterView'],
       caseSensitive: m['caseSensitive'],
@@ -79,8 +72,8 @@ class FileSetting {
       useRegex: m['useRegex'],
       filterWord: m['filterWord'],
       shadowIndex: m['shadowIndex'],
-      mainviewPosition: (mi, mf),
-      filterviewPosition: (fi, ff),
+      mainviewPosition: m['mainviewPosition'],
+      filterviewPosition: m['filterviewPosition'],
     );
   }
 
