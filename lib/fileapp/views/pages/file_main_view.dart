@@ -16,7 +16,7 @@ class MainView extends ConsumerStatefulWidget {
 }
 
 class _MainPageState extends ConsumerState<MainView> {
-  final ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = NoJumpBallisticController();
 
   @override
   void initState() {

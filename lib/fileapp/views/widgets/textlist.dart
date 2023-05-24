@@ -720,6 +720,47 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
   }
 }
 
+class NoJumpBallisticController extends ScrollController {
+  NoJumpBallisticController({
+    super.initialScrollOffset = 0.0,
+    super.keepScrollOffset = true,
+    super.debugLabel,
+  });
+
+  @override
+  ScrollPosition createScrollPosition(ScrollPhysics physics,
+      ScrollContext context, ScrollPosition? oldPosition) {
+    return _Position(
+      physics: physics,
+      context: context,
+      initialPixels: initialScrollOffset,
+      keepScrollOffset: keepScrollOffset,
+      oldPosition: oldPosition,
+      debugLabel: debugLabel,
+    );
+  }
+}
+
+class _Position extends ScrollPositionWithSingleContext {
+  _Position({
+    required super.physics,
+    required super.context,
+    super.initialPixels = 0.0,
+    super.keepScrollOffset,
+    super.oldPosition,
+    super.debugLabel,
+  });
+
+  @override
+  void goBallistic(double velocity) {
+    if (velocity.abs() < precisionErrorTolerance) {
+      super.goIdle();
+    } else {
+      super.goBallistic(velocity);
+    }
+  }
+}
+
 // max:     9223372036854775807
 // max-web: 9007199254740991
 // 1 + 6 + 11
