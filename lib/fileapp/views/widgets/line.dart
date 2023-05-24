@@ -35,16 +35,16 @@ class _LineState extends ConsumerState<Line> {
           )),
           Expanded(
               child: Stack(children: [
-            Positioned.fill(child: Builder(builder: (_) {
-              final currentIndex = ref.watch(
-                  fileSettingProvider(FileView.id(context))
-                      .select((value) => value.shadowIndex));
+            Positioned.fill(child: RepaintBoundary(child: Builder(builder: (_) {
+              final highlignt = ref.watch(
+                  fileSettingProvider(FileView.id(context)).select(
+                      (value) => value.shadowIndex == widget.data.lineNumber));
               Color? color;
-              if (currentIndex == widget.data.lineNumber) {
+              if (highlignt) {
                 color = const Color.fromARGB(80, 172, 175, 179);
               }
               return Container(color: color);
-            })),
+            }))),
             GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () {

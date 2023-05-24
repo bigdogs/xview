@@ -20,7 +20,6 @@ class TextList extends BoxScrollView {
     super.reverse,
     super.controller,
     super.primary,
-    super.physics,
     super.shrinkWrap,
     super.padding,
     required NullableIndexedWidgetBuilder itemBuilder,
@@ -49,6 +48,7 @@ class TextList extends BoxScrollView {
         ),
         super(
           semanticChildCount: semanticChildCount ?? itemCount,
+          physics: _CustomPhysics(),
         );
 
   final SliverChildDelegate childrenDelegate;
@@ -71,6 +71,15 @@ class _TextListBuilderDelegate extends SliverChildBuilderDelegate {
       super.addAutomaticKeepAlives,
       super.addRepaintBoundaries,
       super.addSemanticIndexes});
+}
+
+class _CustomPhysics extends AlwaysScrollableScrollPhysics {
+  @override
+  Simulation? createBallisticSimulation(
+      ScrollMetrics position, double velocity) {
+    print('position: $position, $velocity');
+    return null;
+  }
 }
 
 /// [SliverList]
@@ -525,30 +534,39 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     }
 
     if (scrollOffset < precisionErrorTolerance) {
-      // we have now reached the zero position,
-      // it is crucial that the child index 0 laied out at offset 0.0
-      while (indexOf(firstChild!) > 0) {
-        final double earliestScrollOffset = childScrollOffset(firstChild!)!;
-        earliestUsefulChild =
-            insertAndLayoutLeadingChild(childConstraints, parentUsesSize: true);
-        assert(earliestUsefulChild != null);
-        final double firstChildScrollOffset =
-            earliestScrollOffset - paintExtentOf(firstChild!);
-        final SliverMultiBoxAdaptorParentData childParentData =
-            firstChild!.parentData! as SliverMultiBoxAdaptorParentData;
-        childParentData.layoutOffset = 0.0;
-        if (firstChildScrollOffset < -precisionErrorTolerance) {
-          // interrupted state: while the scroll offset has been reached to 0.0, the
-          // index has not yet reached to 0
-          //
-          // geometry = SliverGeometry(
-          //   scrollOffsetCorrection: -firstChildScrollOffset,
-          // );
-          // return;
-          collectGarbage(childCount, 0);
-          addInitialChild();
-          earliestUsefulChild = firstChild!;
-          break;
+      if (indexOf(firstChild!) == 0 && childScrollOffset(firstChild!) != 0) {
+        textlistLog.info('the firstChild index is 0 but the offset is not 0!');
+        _pd(firstChild!).index = 0;
+        _pd(firstChild!).layoutOffset = 0;
+        earliestUsefulChild = firstChild!;
+      } else {
+        // we have now reached the zero position,
+        // it is crucial that the child index 0 laied out at offset 0.0
+        while (indexOf(firstChild!) > 0) {
+          final double earliestScrollOffset = childScrollOffset(firstChild!)!;
+          earliestUsefulChild = insertAndLayoutLeadingChild(childConstraints,
+              parentUsesSize: true);
+          assert(earliestUsefulChild != null);
+          final double firstChildScrollOffset =
+              earliestScrollOffset - paintExtentOf(firstChild!);
+          final SliverMultiBoxAdaptorParentData childParentData =
+              firstChild!.parentData! as SliverMultiBoxAdaptorParentData;
+          childParentData.layoutOffset = 0.0;
+          if (firstChildScrollOffset < -precisionErrorTolerance) {
+            // interrupted state: while the scroll offset has been reached to 0.0, the
+            // index has not yet reached to 0
+            //
+            // geometry = SliverGeometry(
+            //   scrollOffsetCorrection: -firstChildScrollOffset,
+            // );
+            // return;
+            textlistLog
+                .info('the index has reached to 0 but the offset is not');
+            _pd(firstChild!).index = 0;
+            _pd(firstChild!).layoutOffset = 0;
+            earliestUsefulChild = firstChild!;
+            break;
+          }
         }
       }
     }

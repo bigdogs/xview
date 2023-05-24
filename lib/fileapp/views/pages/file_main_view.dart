@@ -29,9 +29,8 @@ class _MainPageState extends ConsumerState<MainView> {
         fileSettingProvider(FileView.id(context))
             .select((value) => value.jumpIndex), (previous, next) {
       if (next > 0) {
-        //FIXME:
-        // print('jump to...  $next');
-        // _scrollController.jumpTo(encodeVisiableIndex(next.round()));
+        print('jump to...  $next');
+        _scrollController.jumpTo(encodeVisiableIndex(next.round()));
       }
     });
     final lines = ref.watch(allLineProvider(FileView.id(context)));
