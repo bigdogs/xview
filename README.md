@@ -5,14 +5,13 @@
 # TODO
 
 - app icon & name
-- search bar
-- make tab icon looks better
-- code refactor
-  - multiple file support
-  - a better scrolling controller that can center on a specific index and position specific element at particular offset
-  - save file state. maybe need a notifier/listener
-  - bigger file support (~100M). stream loading
-  - empty file page
+- search bar close icon
+- search bar show filter result
+- search bar regex/sensitive/whole word support
+- search bar show error on regex is not valid
+- right click menu
+- search history (global)
+
 
 # Known issue
 
