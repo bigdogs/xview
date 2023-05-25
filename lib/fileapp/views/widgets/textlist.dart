@@ -219,10 +219,12 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
 
     int baseIndex = 0;
     double baseOffset = 0;
-    if (first != null && offset < first) {
+    if (first != null && offset < first && (_pd(firstChild!).index ?? 0) > 0) {
       baseOffset = first;
       baseIndex = _pd(firstChild!).index!;
-    } else if (last != null && offset > last) {
+    } else if (last != null &&
+        offset > last &&
+        (_pd(lastChild!).index ?? 0) > 0) {
       baseOffset = last;
       baseIndex = _pd(lastChild!).index!;
     }
@@ -411,7 +413,7 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     collectGarbage(childCount, 0);
     addInitialChild(index: fli, layoutOffset: flo);
     return SliverGeometry(
-        scrollOffsetCorrection: flo - constraints.scrollOffset);
+        scrollOffsetCorrection: lf - constraints.scrollOffset);
   }
 
   SliverGeometry? customCorrection() {
@@ -552,10 +554,21 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
             // return;
             textlistLog.info(
                 'the scroll offset has been reached to 0. but the index is not 0');
-            //TODO:
-            _pd(firstChild!).layoutOffset = 0;
-            earliestUsefulChild = firstChild!;
-            break;
+            int firstIndex = indexOf(firstChild!);
+            if (firstIndex < 10) {
+              textlistLog.info('correct to layout from 0/0');
+              collectGarbage(childCount, 0);
+              addInitialChild();
+              geometry = SliverGeometry(
+                scrollOffsetCorrection: -scrollOffset,
+              );
+              return;
+            } else {
+              textlistLog.info('correct to layout $firstIndex at first');
+              double estimatedLayout = estimatedCharHeight! * firstIndex;
+              _pd(firstChild!).layoutOffset = estimatedLayout;
+              break;
+            }
           }
         }
       }
@@ -768,27 +781,52 @@ int? decodeVisiableIndex(double offset) {
   return null;
 }
 
-// 4150.16~~~~~.......77
-//         gap   index
+// 88888888.88888888
+// ~~~~~~~~.~~181111
+
 String encodeRestorePosition(
   double layoutOffset,
   int firstChildIndex,
   double firstChildLayoutOffset,
 ) {
-  assert(layoutOffset >= firstChildLayoutOffset);
-  double flo = double.parse(firstChildLayoutOffset.toStringAsFixed(2));
-  double lo = double.parse(layoutOffset.toStringAsFixed(2));
-
-  // 2.22 => 002.22
-  double gap = double.parse((lo - flo).toStringAsFixed(2));
-  String gaps;
-  if (gap > 999.99) {
-    gaps = "99999";
-  } else {
-    gaps = gap.toString().replaceFirst('.', '').padLeft(5, '0');
+  if (layoutOffset < firstChildLayoutOffset || layoutOffset > 99999999) {
+    // the scroll state is in chaos
+    return "";
   }
 
-  return '$flo$gaps${firstChildIndex.toString().padLeft(7, '0')}77';
+  String index = firstChildIndex.toString();
+  assert(index.length < 9);
+
+  int fl = firstChildLayoutOffset.round();
+  if (index.length > 2) {
+    var multiper = (index.length - 2);
+    var r = 1;
+    while (multiper != 0) {
+      multiper -= 1;
+      r *= 10;
+    }
+    fl = (fl / r).round();
+  }
+
+  double gap =
+      double.parse((layoutOffset - firstChildLayoutOffset).toStringAsFixed(1));
+  String gaps;
+  if (gap > 999) {
+    gaps = "9999";
+  } else {
+    gaps = gap.toString().replaceFirst('.', '').padLeft(4, '0');
+    if (gaps[3] == '0') {
+      gaps = '${gaps.substring(0, 3)}1';
+    }
+  }
+
+  var s = '$fl${index.padLeft(2, '0')}${index.length}${9 - index.length}$gaps';
+  final dot = s.length - 8;
+  s = '${s.substring(0, dot)}.${s.substring(dot)}';
+
+  // 2.22 => 002.22
+
+  return s;
 }
 
 (double, int, double)? decodeRestorePosition(double offset) {
@@ -796,13 +834,21 @@ String encodeRestorePosition(
   final len = s.length;
 
   final dot = s.indexOf('.');
-  if (dot == len - 17) {
-    if (s.endsWith("77")) {
-      final flo = double.parse(offset.toStringAsFixed(2));
-      final gap = double.parse(
-          '${s.substring(dot + 3, dot + 8)}.${s.substring(dot + 8, dot + 10)}');
-      final index = int.parse(s.substring(dot + 10, dot + 17));
-      return (flo + gap, index, flo);
+  if (dot == len - 9) {
+    final indexLen = int.parse(s[dot + 3]);
+    if (indexLen + int.parse(s[dot + 4]) == 9) {
+      final gap =
+          double.parse('${s.substring(dot + 5, dot + 8)}.${s[dot + 8]}');
+      int index;
+      if (indexLen <= 2) {
+        index = int.parse(s.substring(dot + 1, dot + 3));
+      } else {
+        index = int.parse(
+            '${s.substring(dot - (indexLen - 2), dot)}${s.substring(dot + 1, dot + 3)}');
+      }
+      final flo = double.parse(offset.toStringAsFixed(0));
+      final lo = flo + gap;
+      return (lo, index, flo);
     }
   }
   return null;

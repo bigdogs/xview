@@ -32,7 +32,7 @@ class _MainPageState extends ConsumerState<MainView> {
         if (p != null) {
           if (p.$2 < fileCount) {
             log.info(
-                'mainview resotre location: layoutOffset: ${p.$1}, firstChildIndex: ${p.$2}, firstChildOffset: ${p.$3}');
+                '[${FileView.id(context)}] mainview resotre location: layoutOffset: ${p.$1}, firstChildIndex: ${p.$2}, firstChildOffset: ${p.$3}');
             initOffset = o;
           } else {
             log.warning(
@@ -68,9 +68,7 @@ class _MainPageState extends ConsumerState<MainView> {
           controller: scrollController,
           itemTextCount: (index) => lines[index].text.length,
           itemCount: lines.length,
-          cacheExtent: 0,
           layoutNotifier: (position) {
-            print('mainview Layout. $position');
             ref
                 .read(fileSettingProvider(FileView.id(context)).notifier)
                 .updateSetting((p0) => p0.copy(mainviewPosition: position));
