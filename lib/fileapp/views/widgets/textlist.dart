@@ -132,13 +132,18 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
       return estimatedCharHeight!;
     }
 
-    // it seems like there's room for optimazition, but I'm not entirely certain
-    // if it's necessary
-    int countPerLine = (maxWidth / estimatedCharWidth!).round();
-    int textCount = _delegate().itemTextCount(index);
-    int lineCount = (textCount / countPerLine).round() + 1;
+    try {
+      // it seems like there's room for optimazition, but I'm not entirely certain
+      // if it's necessary
 
-    return lineCount * estimatedCharHeight!;
+      int countPerLine = (maxWidth / estimatedCharWidth!).round();
+      int textCount = _delegate().itemTextCount(index);
+      int lineCount = (textCount / countPerLine).round() + 1;
+
+      return lineCount * estimatedCharHeight!;
+      // ignore: empty_catches
+    } catch (e) {}
+    return estimatedCharHeight!;
   }
 
   double _estimateChildHeight(RenderBox child) {
@@ -559,10 +564,12 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
               textlistLog.info('correct to layout from 0/0');
               collectGarbage(childCount, 0);
               addInitialChild();
-              geometry = SliverGeometry(
-                scrollOffsetCorrection: -scrollOffset,
-              );
-              return;
+              if (scrollOffset != 0) {
+                geometry = SliverGeometry(
+                  scrollOffsetCorrection: -scrollOffset,
+                );
+                return;
+              }
             } else {
               textlistLog.info('correct to layout $firstIndex at first');
               double estimatedLayout = estimatedCharHeight! * firstIndex;

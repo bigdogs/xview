@@ -60,7 +60,7 @@ class _FileState extends ConsumerState<FileApp> with TickerProviderStateMixin {
     // controller
     //
     TabController controller = TabController(
-        animationDuration: const Duration(milliseconds: 300),
+        animationDuration: const Duration(milliseconds: 400),
         length: files.length,
         vsync: this,
         // The documentation states that we should not use `ref.read` in the build method
