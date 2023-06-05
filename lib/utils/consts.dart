@@ -13,4 +13,6 @@ abstract class CustomIcon {
 
 abstract class CustomColor {
   static const Color filterBackground = Color.fromARGB(100, 230, 224, 223);
+  static const TextStyle textHighlightStyle =
+      TextStyle(backgroundColor: Color(0xFFFFF59D));
 }

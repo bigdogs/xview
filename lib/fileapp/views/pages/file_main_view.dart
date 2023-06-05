@@ -61,34 +61,6 @@ class _MainPageState extends ConsumerState<MainView> {
     initPositionRestored = true;
   }
 
-  // ScrollController get scrollController {
-  //   if (_scrollController == null) {
-  //     double initOffset = 0;
-  //     final position =
-  //         ref.read(fileSettingProvider(FileView.id(context))).mainviewPosition;
-  //     if (position != "") {
-  //       final fileCount =
-  //           ref.read(allLineProvider(FileView.id(context))).length;
-  //       double o = double.parse(position);
-  //       (double, int, double)? p = decodeRestorePosition(o);
-  //       if (p != null) {
-  //         if (p.$2 < fileCount) {
-  //           log.info(
-  //               '[${FileView.id(context)}] mainview resotre location: layoutOffset: ${p.$1}, firstChildIndex: ${p.$2}, firstChildOffset: ${p.$3}');
-  //           initOffset = o;
-  //         } else {
-  //           log.warning(
-  //               'mainview store location failed. index: ${p.$2}, file length: $fileCount');
-  //         }
-  //       }
-  //     }
-
-  //     _scrollController =
-  //         NoJumpBallisticController(initialScrollOffset: initOffset);
-  //   }
-  //   return _scrollController!;
-  // }
-
   @override
   Widget build(BuildContext context) {
     ref.listen(

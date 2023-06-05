@@ -130,3 +130,7 @@ final fileSettingProvider =
 
   return notifier;
 });
+
+final filterViewEnableProvider = StateProvider.family<bool, String>((ref, arg) {
+  return true;
+});

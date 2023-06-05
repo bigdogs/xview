@@ -14,6 +14,12 @@ class FilterView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final lines = ref.watch(filterLineProvider(FileView.id(context)));
     final controller = ScrollController();
+    ref.listen(filterViewEnableProvider(FileView.id(context)),
+        (previous, next) {
+      if (previous == true && next == false) {
+        controller.jumpTo(0);
+      }
+    });
     return ColoredBox(
         color: CustomColor.filterBackground,
         child: Scrollbar(
@@ -26,6 +32,8 @@ class FilterView extends ConsumerWidget {
               itemTextCount: (index) => lines[index].text.length,
               itemCount: lines.length,
               layoutNotifier: (s) {
+                // TODO: keep position of filter view also
+
                 // ref
                 //     .read(fileSettingProvider(FileView.id(context)).notifier)
                 //     .updateSetting(

@@ -14,10 +14,14 @@ class FileMatchNotifer extends StateNotifier<List<LineMatch>> {
 
   FileMatchNotifer(super.state, {required this.fileId, this.currentSetting});
 
-  onSettingUpdate(FileSetting? prev, FileSetting next) {
+  onSettingUpdate(FileSetting? prev, FileSetting next, Ref ref) {
     currentSetting = next;
     if (shouldTriggerMatch(prev, next)) {
-      matchAll();
+      () async {
+        ref.read(filterViewEnableProvider(fileId).notifier).state = false;
+        await matchAll();
+        ref.read(filterViewEnableProvider(fileId).notifier).state = true;
+      }();
     }
   }
 
@@ -28,15 +32,24 @@ class FileMatchNotifer extends StateNotifier<List<LineMatch>> {
             currentSetting, next.resovledContent.sublist(len), state.length)
         .then((increment) {
       assert(state.length == len);
-      state = [...state, ...increment];
+      _update(increment, append: true);
     });
 
     currentFileData = next;
   }
 
   matchAll() async {
-    state = await applyFileMatch(
+    final lines = await applyFileMatch(
         currentSetting, currentFileData?.resovledContent ?? [], 0);
+    _update(lines);
+  }
+
+  _update(List<LineMatch> lines, {bool append = false}) {
+    if (append) {
+      state = [...state, ...lines];
+    } else {
+      state = lines;
+    }
   }
 
   static bool shouldTriggerMatch(FileSetting? prev, FileSetting next) {
@@ -82,7 +95,9 @@ final allLineProvider =
   final notifier = FileMatchNotifer([],
       fileId: fileId, currentSetting: ref.read(fileSettingProvider(fileId)));
 
-  ref.listen(fileSettingProvider(fileId), notifier.onSettingUpdate);
+  ref.listen(fileSettingProvider(fileId), (prev, next) {
+    notifier.onSettingUpdate(prev, next, ref);
+  });
   ref.listen(fileDataProvider(fileId), notifier.onNewFileData);
 
   return notifier;
@@ -92,8 +107,9 @@ final filterLineProvider =
     Provider.family<List<LineMatch>, String>((ref, fileId) {
   final hasFilterWord = ref.watch(hasFilterWordProvider(fileId));
   final all = ref.watch(allLineProvider(fileId));
+  final enable = ref.watch(filterViewEnableProvider(fileId));
 
-  if (!hasFilterWord) {
+  if (!hasFilterWord || !enable) {
     return [];
   }
 
