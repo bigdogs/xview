@@ -1,5 +1,4 @@
 // init process before `runApp`
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
@@ -8,12 +7,12 @@ import 'package:xview/fileapp/service/hive.dart';
 
 const kAppName = 'xview';
 
-void preInitialize() {
+preInitialize() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   // https://github.com/leanflutter/window_manager/issues/335
-  if (!Platform.isMacOS) {
-    WindowManager.instance.setMinimumSize(const Size(480, 320));
-  }
+  await WindowManager.instance.ensureInitialized();
+  WindowManager.instance.setMinimumSize(const Size(480, 320));
 
   // log
   hierarchicalLoggingEnabled = true;

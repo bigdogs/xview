@@ -5,6 +5,7 @@ import 'package:xview/fileapp/providers/file_setting.dart';
 import 'package:xview/fileapp/service/match/nop_match.dart';
 import 'package:xview/fileapp/service/match/plain_match.dart';
 import 'package:xview/fileapp/service/match/regex_match.dart';
+import 'package:xview/utils/log.dart';
 
 class FileMatchNotifer extends StateNotifier<List<LineMatch>> {
   final String fileId;
@@ -72,6 +73,8 @@ class FileMatchNotifer extends StateNotifier<List<LineMatch>> {
     if (setting == null || setting.filterWord == "") {
       return nopMatch(lines, lineStart);
     }
+    log.fine(
+        'match..  "${setting.filterWord}", caseSensitive: ${setting.caseSensitive}, matchWord: ${setting.matchWholeWord}, useRegex: ${setting.useRegex}');
 
     if (setting.useRegex) {
       return await regexMatch(lines, lineStart, setting.filterWord,

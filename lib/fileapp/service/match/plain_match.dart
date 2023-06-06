@@ -6,7 +6,7 @@ import 'package:xview/utils/consts.dart';
 
 Future<List<LineMatch>> plainMatch(List<String> lines, int lineStart,
     String word, bool caseSensitive, bool matchWholeWord) async {
-  if (!caseSensitive && !matchWholeWord) {
+  if (caseSensitive && !matchWholeWord) {
     return lines.mapIndexed((idx, text) {
       final (span, isMatch) = plainMatchLine(text, word);
       return LineMatch(

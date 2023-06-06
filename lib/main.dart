@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:xview/fileapp/views/pages/app.dart';
 import 'package:xview/utils/util.dart';
 
-void main() {
-  preInitialize();
+void main() async {
+  await preInitialize();
 
   const fontSize = 12.0;
   runApp(ProviderScope(
