@@ -5,14 +5,16 @@
 # TODO
 
 - app icon & name
-- search bar close icon
-- search bar show filter result
-- search bar regex/sensitive/whole word support
 - search bar show error on regex is not valid
 - right click menu
 - search history (global)
+- label 
+- ...
 
 
 # Known issue
 
-- hover will not work if the windows is not active or in focus
+- (p2) hover will not work if the windows is not active or in focus
+- (p0) quick swiping show blank 
+- (p1) optmize big file searching (chunk/multiple thread)
+- (p2) remember filter word even if editing is not complete
