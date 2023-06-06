@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:xview/fileapp/providers/file_setting.dart';
+import 'package:xview/fileapp/providers/matcher.dart';
 import 'package:xview/fileapp/views/pages/file_view.dart';
 import 'package:xview/utils/consts.dart';
 
@@ -14,7 +15,6 @@ class FilterBar extends ConsumerStatefulWidget {
 }
 
 class _FilterBarState extends ConsumerState<FilterBar> {
-  String _filter = "";
   final FocusNode focusNode = FocusNode();
   late final TextEditingController _controller;
 
@@ -30,8 +30,31 @@ class _FilterBarState extends ConsumerState<FilterBar> {
     super.initState();
   }
 
+  String _filter = "";
+  set filter(String value) {
+    if ((value.isEmpty && _filter.isNotEmpty) ||
+        (value.isNotEmpty && _filter.isEmpty)) {
+      setState(() {});
+    }
+    _filter = value;
+  }
+
+  bool _showMatchNumber = false;
+  set showMatchNumber(bool value) {
+    if ((value && !_showMatchNumber) || (!value && _showMatchNumber)) {
+      setState(() {});
+    }
+    _showMatchNumber = value;
+  }
+
   @override
   Widget build(BuildContext context) {
+    int matchNumber = 0;
+    if (_showMatchNumber) {
+      matchNumber = ref.watch(filterLineProvider(FileView.id(context))
+          .select((value) => value.length));
+    }
+
     return Container(
         color: CustomColor.filterBackground,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -56,6 +79,7 @@ class _FilterBarState extends ConsumerState<FilterBar> {
               selection: (p0) => p0.matchWholeWord,
               updater: (p0) => p0.copy(matchWholeWord: !p0.matchWholeWord),
             ),
+            const SizedBox(width: 4),
             Expanded(
                 child: TextField(
               cursorWidth: 1.1,
@@ -63,21 +87,33 @@ class _FilterBarState extends ConsumerState<FilterBar> {
               style: const TextStyle(fontSize: 12),
               maxLines: 1,
               focusNode: focusNode,
-              onChanged: (c) {
-                _filter = c;
-              },
-              onEditingComplete: () {
-                ref
-                    .read(fileSettingProvider(FileView.id(context)).notifier)
-                    .updateSetting((p0) => p0.copy(filterWord: _filter));
-                focusNode.requestFocus();
-              },
+              onChanged: _onChange,
+              onEditingComplete: _onEditingComplete,
               decoration: InputDecoration(
                   filled: true,
                   hoverColor: Colors.transparent,
                   contentPadding: EdgeInsets.zero,
                   prefixIcon: const Icon(Icons.search, size: 16),
-                  suffix: _MatchCount(),
+                  suffix: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_showMatchNumber)
+                        Text(
+                          '$matchNumber matches',
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                      if (_filter.isNotEmpty)
+                        Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: GestureDetector(
+                                onTap: _onClearContent,
+                                child: const Icon(
+                                  CustomIcon.close_circle,
+                                  color: Color.fromARGB(255, 124, 124, 124),
+                                  size: 20,
+                                )))
+                    ],
+                  ),
                   fillColor: (focusNode.hasFocus || _filter.isNotEmpty)
                       ? Colors.white
                       : const Color.fromARGB(255, 215, 210, 209),
@@ -88,34 +124,31 @@ class _FilterBarState extends ConsumerState<FilterBar> {
           ],
         ));
   }
-}
 
-class _MatchCount extends ConsumerStatefulWidget {
-  @override
-  ConsumerState<ConsumerStatefulWidget> createState() {
-    return _MatchCountState();
+  _onClearContent() {
+    _controller.clear();
+    filter = "";
+    showMatchNumber = false;
+    focusNode.requestFocus();
   }
-}
 
-class _MatchCountState extends ConsumerState<_MatchCount> {
-  @override
-  Widget build(BuildContext context) {
-    return const Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          '0 matches',
-          style: TextStyle(fontSize: 11),
-        ),
-        Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4),
-            child: Icon(
-              CustomIcon.close_circle,
-              color: Color.fromARGB(255, 124, 124, 124),
-              size: 20,
-            ))
-      ],
-    );
+  _onChange(c) {
+    filter = c;
+    showMatchNumber = false;
+  }
+
+  _onEditingComplete() {
+    _saveFilterWord();
+    focusNode.requestFocus();
+    if (_filter.isNotEmpty) {
+      showMatchNumber = true;
+    }
+  }
+
+  _saveFilterWord() {
+    ref
+        .read(fileSettingProvider(FileView.id(context)).notifier)
+        .updateSetting((p0) => p0.copy(filterWord: _filter));
   }
 }
 
