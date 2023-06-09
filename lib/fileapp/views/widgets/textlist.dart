@@ -202,6 +202,18 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
   }
 
   int _estimateIndexAtOffset(double offset) {
+    int clamp(int originIndex) {
+      if (originIndex < 0) {
+        return 0;
+      }
+
+      final totalCount = _delegate().childCount;
+      if (totalCount != null && totalCount < originIndex) {
+        return max((totalCount * 0.95).round(), totalCount - 50);
+      }
+      return originIndex;
+    }
+
     if (offset == 0.0) {
       return 0;
     }
@@ -235,7 +247,8 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
     }
 
     if ((offset - baseOffset).abs() > (2000 * estimatedCharHeight!)) {
-      return baseIndex + ((offset - baseOffset) / estimatedCharHeight!).round();
+      return clamp(
+          baseIndex + ((offset - baseOffset) / estimatedCharHeight!).round());
     }
 
     int step = offset > baseOffset ? 1 : -1;
@@ -244,7 +257,7 @@ class _CustomRenderSliverList extends RenderSliverMultiBoxAdaptor {
       baseIndex += step;
     }
 
-    return baseIndex - 1;
+    return clamp(baseIndex - 1);
   }
 
   int? _collectFarAwayGarbage2(double scrollStart, double scrollEnd) {
