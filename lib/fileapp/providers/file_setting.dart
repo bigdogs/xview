@@ -18,7 +18,7 @@ class FileSetting {
 
   const FileSetting({
     this.percentOfFilterView = 0.2,
-    this.caseSensitive = true,
+    this.caseSensitive = false,
     this.matchWholeWord = false,
     this.useRegex = false,
     this.filterWord = '',

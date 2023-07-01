@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:menu_bar/menu_bar.dart';
+import 'package:xview/fileapp/views/menu/menu.dart';
 import 'package:xview/fileapp/views/pages/app.dart';
 import 'package:xview/utils/util.dart';
 
@@ -16,6 +18,6 @@ void main() async {
           bodyMedium: TextStyle(fontSize: fontSize, height: 1.4),
           titleMedium: TextStyle(fontSize: fontSize)),
     ),
-    home: const Scaffold(body: FileApp()),
+    home: const Scaffold(body: ViewerMenuBar(child: FileApp())),
   )));
 }
