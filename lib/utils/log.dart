@@ -11,5 +11,5 @@ final log = Logger("xview")
 final textlistLog = Logger("textlist")
   ..level = Level.ALL
   ..onRecord.listen((record) {
-    print('[textlist] ${record.time}: ${record.message}');
+    // print('[textlist] ${record.time}: ${record.message}');
   });
