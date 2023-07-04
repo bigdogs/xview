@@ -21,41 +21,9 @@ class _MenuBarAppState extends State<MenuBarApp> {
             Expanded(
               child: MenuBar(
                 children: <Widget>[
-                  SubmenuButton(
-                    menuChildren: <Widget>[
-                      MenuItemButton(
-                        onPressed: () {
-                          showAboutDialog(
-                            context: context,
-                            applicationName: 'MenuBar Sample',
-                            applicationVersion: '1.0.0',
-                          );
-                        },
-                        child: const MenuAcceleratorLabel('&About'),
-                      ),
-                      MenuItemButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Saved!'),
-                            ),
-                          );
-                        },
-                        child: const MenuAcceleratorLabel('&Save'),
-                      ),
-                      MenuItemButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Quit!'),
-                            ),
-                          );
-                        },
-                        child: const MenuAcceleratorLabel('&Quit'),
-                      ),
-                    ],
-                    child: const MenuAcceleratorLabel('&File'),
-                  ),
+                  _buildMenuFile(context),
+                  _buildMenuView(context),
+                  _buildMenuEncoding(context),
                 ],
               ),
             ),
@@ -65,4 +33,52 @@ class _MenuBarAppState extends State<MenuBarApp> {
       ],
     );
   }
+}
+
+SubmenuButton _buildMenuFile(BuildContext context) {
+  return SubmenuButton(
+    menuChildren: <Widget>[
+      MenuItemButton(
+        onPressed: () {
+          showAboutDialog(
+            context: context,
+            applicationName: 'MenuBar Sample',
+            applicationVersion: '1.0.0',
+          );
+        },
+        child: const MenuAcceleratorLabel('&Abouthahahahahahahhahhhhhhh'),
+      ),
+      MenuItemButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Saved!'),
+            ),
+          );
+        },
+        child: const MenuAcceleratorLabel('&Save'),
+      ),
+      MenuItemButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Quit!'),
+            ),
+          );
+        },
+        child: const MenuAcceleratorLabel('&Quit'),
+      ),
+    ],
+    child: const MenuAcceleratorLabel('&File'),
+  );
+}
+
+SubmenuButton _buildMenuView(BuildContext context) {
+  return const SubmenuButton(
+      menuChildren: [], child: MenuAcceleratorLabel('&View'));
+}
+
+SubmenuButton _buildMenuEncoding(BuildContext context) {
+  return const SubmenuButton(
+      menuChildren: [], child: MenuAcceleratorLabel('&Encoding'));
 }
