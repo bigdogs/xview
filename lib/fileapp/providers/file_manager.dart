@@ -110,7 +110,7 @@ class FileManagerNotifier extends Notifier<FileManager> {
   }
 
   openFiles(List<String> files) async {
-    log.info('openFiles: $files');
+    log.info('fileManager openFiles: $files');
 
     for (final file in files) {
       try {

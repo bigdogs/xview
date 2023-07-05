@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:xview/utils/consts.dart';
+import 'package:xview/fileapp/views/menu/menu_bar.dart';
 
 class MenuBarApp extends StatefulWidget {
   final Widget child;
+  final MenuAction action;
 
-  const MenuBarApp({super.key, required this.child});
+  const MenuBarApp({super.key, required this.child, required this.action});
 
   @override
   State<MenuBarApp> createState() => _MenuBarAppState();
@@ -33,52 +34,26 @@ class _MenuBarAppState extends State<MenuBarApp> {
       ],
     );
   }
-}
 
-SubmenuButton _buildMenuFile(BuildContext context) {
-  return SubmenuButton(
-    menuChildren: <Widget>[
-      MenuItemButton(
-        onPressed: () {
-          showAboutDialog(
-            context: context,
-            applicationName: 'MenuBar Sample',
-            applicationVersion: '1.0.0',
-          );
-        },
-        child: const MenuAcceleratorLabel('&Abouthahahahahahahhahhhhhhh'),
-      ),
-      MenuItemButton(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Saved!'),
-            ),
-          );
-        },
-        child: const MenuAcceleratorLabel('&Save'),
-      ),
-      MenuItemButton(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Quit!'),
-            ),
-          );
-        },
-        child: const MenuAcceleratorLabel('&Quit'),
-      ),
-    ],
-    child: const MenuAcceleratorLabel('&File'),
-  );
-}
+  SubmenuButton _buildMenuFile(BuildContext context) {
+    return SubmenuButton(
+      menuChildren: <Widget>[
+        MenuItemButton(
+          onPressed: () => widget.action.openFileDialog(),
+          child: const MenuAcceleratorLabel('&Open...'),
+        )
+      ],
+      child: const MenuAcceleratorLabel('&File'),
+    );
+  }
 
-SubmenuButton _buildMenuView(BuildContext context) {
-  return const SubmenuButton(
-      menuChildren: [], child: MenuAcceleratorLabel('&View'));
-}
+  SubmenuButton _buildMenuView(BuildContext context) {
+    return const SubmenuButton(
+        menuChildren: [], child: MenuAcceleratorLabel('&View'));
+  }
 
-SubmenuButton _buildMenuEncoding(BuildContext context) {
-  return const SubmenuButton(
-      menuChildren: [], child: MenuAcceleratorLabel('&Encoding'));
+  SubmenuButton _buildMenuEncoding(BuildContext context) {
+    return const SubmenuButton(
+        menuChildren: [], child: MenuAcceleratorLabel('&Encoding'));
+  }
 }
