@@ -7,6 +7,10 @@ import 'package:xview/fileapp/views/pages/file_view.dart';
 import 'package:xview/fileapp/views/pages/no_file.dart';
 import 'package:xview/fileapp/views/widgets/drag_file.dart';
 
+import 'dart:io';
+
+import 'package:xview/utils/log.dart';
+
 class FileApp extends ConsumerStatefulWidget {
   const FileApp({super.key});
 
@@ -19,15 +23,21 @@ class FileApp extends ConsumerStatefulWidget {
 class _FileState extends ConsumerState<FileApp> with TickerProviderStateMixin {
   @override
   void initState() {
-    _activateHistory();
+    _firstLoadFiles();
     super.initState();
   }
 
-  // load all settings to memory
-  _activateHistory() async {
-    final files = await ref.read(fileManager.notifier).loadHistoryFiles();
+  _firstLoadFiles() async {
+    // load previously uncoded file
+    final fm = ref.read(fileManager.notifier);
+    final unclosedFiles = await fm.unclosedFiles();
+    final argFiles = Platform.executableArguments;
+    log.info("unclosed files: $unclosedFiles, argument files: $argFiles");
+
+    final files = [...unclosedFiles, ...argFiles];
+    await fm.openFiles(files);
+    // load all settings to memory, we don't need lazy loading
     for (final f in files) {
-      // load all settings to memory, we don't need lazy loading
       ref.read(fileSettingProvider(f).notifier);
     }
   }

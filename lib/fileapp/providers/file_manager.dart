@@ -99,13 +99,12 @@ class FileManagerNotifier extends Notifier<FileManager> {
     ref.invalidate(hasFilterWordProvider(file));
   }
 
-  Future<List<String>> loadHistoryFiles() async {
+  Future<List<String>> unclosedFiles() async {
     final files = await FileViewBox.allKeys();
     log.info("history files: $files");
     if (files.isEmpty) {
       return [];
     }
-    openFiles(files);
     return files;
   }
 
