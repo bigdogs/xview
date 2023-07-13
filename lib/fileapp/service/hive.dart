@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:xview/fileapp/service/file.dart';
 
 const String kBoxFileView = "file_view";
 
@@ -9,7 +10,8 @@ final _complete = Completer();
 
 Future<void> initHiveBox() async {
   await Hive.initFlutter();
-  FileViewBox._instance = await Hive.openBox(kBoxFileView);
+  FileViewBox._instance =
+      await Hive.openBox(kBoxFileView, path: await dataDirectory());
   _complete.complete(0);
 }
 
