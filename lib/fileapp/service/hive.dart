@@ -1,44 +1,26 @@
-import 'dart:async';
 
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:xview/fileapp/service/file.dart';
+import 'package:xview/utils/util.dart';
 
 const String kBoxFileView = "file_view";
 
-// wait init complete
-final _complete = Completer();
-
-Future<void> initHiveBox() async {
-  await Hive.initFlutter();
-  FileViewBox._instance =
-      await Hive.openBox(kBoxFileView, path: await dataDirectory());
-  _complete.complete(0);
-}
-
 abstract class FileViewBox {
-  // Although using global variable is not recommanded,
-  // I'm currently unsure of how to improve this situation
-  static late Box<Map> _instance;
+  static late Box<Map> _box;
 
-  static Future<Box<Map>> _box() async {
-    if (_complete.isCompleted) {
-      return _instance;
-    }
-    await _complete.future;
-    return _instance;
+  static ensureBox() async {
+    await Hive.initFlutter();
+    _box = await Hive.openBox(kBoxFileView, path: await dataDirectory());
   }
 
-  static Future<List<String>> allKeys() async =>
-      _box().then((v) => List<String>.from(v.keys.toList()));
+  static List<String> allKeys() => _box.keys.whereType<String>().toList();
 
   static put(String fileId, Map value) async {
-    await (await _box()).put(fileId, value);
+    await _box.put(fileId, value);
   }
 
-  static Future<Map?> get(String fileId) async =>
-      _box().then((value) => value.get(fileId));
+  static Map? get(String fileId) => _box.get(fileId);
 
   static delete(String fileId) async {
-    await (await _box()).delete(fileId);
+    await _box.delete(fileId);
   }
 }

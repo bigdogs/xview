@@ -110,7 +110,7 @@ class FileSettingNotifier extends StateNotifier<FileSetting> {
   }
 
   loadLocalFileSetting() async {
-    final setting = await FileViewBox.get(fileId);
+    final setting = FileViewBox.get(fileId);
     if (setting != null) {
       state = FileSetting.fromMap(setting);
       log.info('[$fileId] load local setting: $state');

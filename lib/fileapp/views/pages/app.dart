@@ -7,9 +7,9 @@ import 'package:xview/fileapp/views/pages/file_view.dart';
 import 'package:xview/fileapp/views/pages/no_file.dart';
 import 'package:xview/fileapp/views/widgets/drag_file.dart';
 
-import 'dart:io';
 
 import 'package:xview/utils/log.dart';
+import 'package:xview/utils/util.dart';
 
 class FileApp extends ConsumerStatefulWidget {
   const FileApp({super.key});
@@ -28,13 +28,12 @@ class _FileState extends ConsumerState<FileApp> with TickerProviderStateMixin {
   }
 
   _firstLoadFiles() async {
-    // load previously uncoded file
+    // load previously unclosed file
     final fm = ref.read(fileManager.notifier);
-    final unclosedFiles = await fm.unclosedFiles();
-    final argFiles = Platform.executableArguments;
-    log.info("unclosed files: $unclosedFiles, argument files: $argFiles");
+    final unclosedFiles = fm.unclosedFiles();
+    log.info("unclosed files: $unclosedFiles, argument files: $startArgs");
 
-    final files = [...unclosedFiles, ...argFiles];
+    final files = [...unclosedFiles, ...startArgs];
     await fm.openFiles(files);
     // load all settings to memory, we don't need lazy loading
     for (final f in files) {
@@ -66,7 +65,7 @@ class _FileState extends ConsumerState<FileApp> with TickerProviderStateMixin {
   }
 
   Widget _buildFileApp(List<FileMeta> files) {
-    // whenever we create a new tabview, we must also create a new
+    // whenever we create a new tab view, we must also create a new
     // controller
     //
     TabController controller = TabController(

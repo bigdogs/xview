@@ -4,15 +4,15 @@ import 'package:xview/fileapp/views/menu/menu_bar.dart';
 import 'package:xview/fileapp/views/pages/app.dart';
 import 'package:xview/utils/util.dart';
 
-void main() async {
+void main(List<String> args) async {
   await preInitialize();
+  startArgs = args;
 
-  const fontSize = 12.0;
   runApp(ProviderScope(
       child: MaterialApp(
     theme: ThemeData(
       useMaterial3: true,
-      fontFamily: 'SF-Mono',
+      fontFamily: defaultFontFamily(),
       menuButtonTheme: const MenuButtonThemeData(
           style: ButtonStyle(
               textStyle: MaterialStatePropertyAll(TextStyle(fontSize: 12)),
@@ -29,8 +29,8 @@ void main() async {
         padding: MaterialStatePropertyAll(EdgeInsets.zero),
       )),
       textTheme: const TextTheme(
-          bodyMedium: TextStyle(fontSize: fontSize, height: 1.4),
-          titleMedium: TextStyle(fontSize: fontSize)),
+          bodyMedium: TextStyle(fontSize: defaultFontSize, height: 1.4),
+          titleMedium: TextStyle(fontSize: defaultFontSize)),
     ),
     home: const Scaffold(body: CustomMenuBar(child: FileApp())),
   )));
