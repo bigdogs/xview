@@ -129,7 +129,7 @@ class FileManagerNotifier extends Notifier<FileManager> {
 
     // open a new file
     log.info('openFile "$file"');
-    ref.read(fileSettingProvider(file).notifier).loadLocalFileSetting();
+    await ref.read(fileSettingProvider(file).notifier).loadLocalFileSetting();
     state = state._addFile(file);
   }
 }

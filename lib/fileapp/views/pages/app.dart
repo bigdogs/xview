@@ -7,7 +7,6 @@ import 'package:xview/fileapp/views/pages/file_view.dart';
 import 'package:xview/fileapp/views/pages/no_file.dart';
 import 'package:xview/fileapp/views/widgets/drag_file.dart';
 
-
 import 'package:xview/utils/log.dart';
 import 'package:xview/utils/util.dart';
 
@@ -27,18 +26,21 @@ class _FileState extends ConsumerState<FileApp> with TickerProviderStateMixin {
     super.initState();
   }
 
-  _firstLoadFiles() async {
-    // load previously unclosed file
-    final fm = ref.read(fileManager.notifier);
-    final unclosedFiles = fm.unclosedFiles();
-    log.info("unclosed files: $unclosedFiles, argument files: $startArgs");
+  _firstLoadFiles() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // load previously unclosed file
+      final fm = ref.read(fileManager.notifier);
+      final unclosedFiles = fm.unclosedFiles();
+      log.info("unclosed files: $unclosedFiles, argument files: $startArgs");
 
-    final files = [...unclosedFiles, ...startArgs];
-    await fm.openFiles(files);
-    // load all settings to memory, we don't need lazy loading
-    for (final f in files) {
-      ref.read(fileSettingProvider(f).notifier);
-    }
+      final files = [...unclosedFiles, ...startArgs];
+      await fm.openFiles(files);
+
+      // load all settings to memory, we don't need lazy loading
+      for (final f in files) {
+        ref.read(fileSettingProvider(f).notifier);
+      }
+    });
   }
 
   @override
