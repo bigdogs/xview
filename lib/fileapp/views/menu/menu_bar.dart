@@ -39,6 +39,7 @@ class _MState extends ConsumerState<CustomMenuBar> implements MenuAction {
       );
     }
 
+    // todo: macos don't need this menu bar
     w = MenuBarApp(
       action: this,
       child: w,

@@ -13,8 +13,10 @@ class FileLogger {
   static Future<void> writeLogToFile(String log) async {
     final f = await _file.runOnce(() async {
       final logFile = File(path.join(await dataDirectory(), "xview.log"));
-      await logFile.delete();
-
+      // delete pervious file if it is exist
+      if (await logFile.exists()) {
+        await logFile.delete();
+      }
       return logFile;
     });
 

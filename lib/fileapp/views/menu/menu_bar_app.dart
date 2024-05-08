@@ -39,8 +39,16 @@ class _MenuBarAppState extends State<MenuBarApp> {
     return SubmenuButton(
       menuChildren: <Widget>[
         MenuItemButton(
+          // style: ButtonStyle(
+          //     minimumSize: MaterialStateProperty.all(Size.fromWidth(200))),
           onPressed: () => widget.action.openFileDialog(),
-          child: const MenuAcceleratorLabel('&Open...'),
+          child: SizedBox(width: 20, child: MenuAcceleratorLabel('&Open...')),
+        ),
+        MenuItemButton(
+          // style: ButtonStyle(
+          //     minimumSize: MaterialStateProperty.all(Size.fromWidth(200))),
+          onPressed: () => widget.action.openFileDialog(),
+          child: SizedBox(width: 300, child: MenuAcceleratorLabel('&Open...')),
         )
       ],
       child: const MenuAcceleratorLabel('&File'),
